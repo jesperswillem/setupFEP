@@ -163,14 +163,9 @@ class Run(object):
         v = v.split(' ')
         if v[0] == 'OPLS':
             ffld_serv = s.SCHROD_DIR + '/utilities/ffld_server'
-            #options = ' -ipdb '+ self.lig + '.pdb -omae ' + self.lig + '_out.mae -print_parameters -version ' + v[1]
-            options = ' -ipdb '+ self.lig + '.pdb -opdb ' + self.lig + '_out.pdb -print_parameters -version ' + v[1]
+            options = ' -ipdb '+ self.lig + '.pdb -print_parameters -version ' + v[1]
             args = shlex.split(ffld_serv + options)
             out = check_output(args)
-            #structconvert=s.SCHROD_DIR + '/utilities/structconvert'
-            #options = ' -imae ' + self.lig + '_out.mae -opdb ' + self.lig + '_out.pdb' 
-            #args = shlex.split(structconvert + options)
-            #out = check_output(args)
 
         elif v[0] == 'amber':
             print 'not supported yet'
@@ -403,9 +398,24 @@ class Run(object):
                                                       line[1][0],
                                                       line[1][1]))
 
-    def write_itp_GROMACS():
+    def write_itp_GROMACS(self):
         return True
 
+    def rename_pdb(self, converted_ff, include = ('ATOM', 'HETATOM')):
+        pdb_in = self.lig + '.pdb'
+        pdb_out = self.lig + '_out.pdb'
+        index = -1
+        atomnames = converted_ff[0]
+        with open(pdb_in) as infile, open(pdb_out, 'w') as outfile:
+            for line in infile:
+                if line.startswith(include):
+                    index += 1
+                    # Check what happens for larger ligands, what does ffld_server do with them???
+                    outfile.write('{}{:<3}{}'.format(line[0:13], 
+                                                     atomnames[index][0], 
+                                                     line[16:])
+                                 )
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog='lig_prep',
@@ -433,7 +443,7 @@ if __name__ == "__main__":
                         dest = "merge",
                         action = 'store_false',
                         default = True,        
-                        help = "Use this flag if you do not want the ligand prms to be merged")
+                        help = "Use this flag if you do not want the ligand prms to be merged   ")
     
     args = parser.parse_args()
     run = Run(lig = args.lig,
@@ -447,3 +457,4 @@ if __name__ == "__main__":
     converted_ff = run.convert_toQ(ff_output)
     run.write_lib_Q(converted_ff)
     run.write_prm_Q(converted_ff)
+    run.rename_pdb(converted_ff)

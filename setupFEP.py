@@ -15,7 +15,7 @@ class Run(object):
     Create FEP files from a common substructure for a given set of
     ligands
     """
-    def __init__(self, lig1, lig2, FF, system, cluster, sphereradius, *args, **kwargs):
+    def __init__(self, lig1, lig2, FF, system, cluster, sphereradius, cysbond, *args, **kwargs):
         """
         The init method is a kind of constructor, called when an instance
         of the class is created. The method serves to initialize what you
@@ -28,6 +28,7 @@ class Run(object):
         self.rootdir = os.getcwd()
         self.cluster = cluster
         self.sphereradius = sphereradius
+        self.cysbond = cysbond
         
         if self.system == 'protein':
             # Get last atom and residue from complexfile!
@@ -245,7 +246,7 @@ class Run(object):
         #AND return the vdW list for the FEP file
         FEP_vdw = []
         for line in prm_merged['vdw']:
-            if len(line) > 1:
+            if len(line) > 1 and line[0] != '!':
                 line = line.split()
                 line2 = "{:10}{:10}{:10}{:10}{:10}{:10}{:10}{:10}".format(line[0],
                                                                       line[1],
@@ -329,7 +330,8 @@ class Run(object):
                     atom1[5] = float(atom1[5]) + 0.001
                     atom1[6] = float(atom1[6]) + 0.001
                     atom1[7] = float(atom1[7]) + 0.001
-                    line = '{:6}{:>5}{:>5}{:>4}{:>6}{:>12}{:>8}{:>8}\n'.format(*atom1)
+                    # FIX string formatting for pdb files
+                    line = '{:6}{:>5}  {:<4}{:<3}{:>6}{:>12}{:>8}{:>8}\n'.format(*atom1)
               
                     outfile.write(line)
                     
@@ -586,6 +588,13 @@ class Run(object):
         with open(qprep_in) as infile, open(qprep_out, 'w') as outfile:
             for line in infile:
                 line = run.replace(line, replacements)
+                if line == '!addbond at1 at2 y\n' and self.cysbond != None:
+                    cysbond = self.cysbond.split(',')
+                    for cys in cysbond:
+                        at1 = cys.split(':')[0]
+                        at2 = cys.split(':')[1]
+                        outfile.write('addbond ' + at1 + ' ' + at2 + '\n' )
+                    continue
                 outfile.write(line)
         
     def qprep(self, writedir):
@@ -640,15 +649,22 @@ if __name__ == "__main__":
                         required = False,
                         default = '15',
                         help = "size of the simulation sphere"
+                       ) 
+    
+    parser.add_argument('-b', '--cysbond',
+                        dest = "cysbond",
+                        default = None,
+                        help = "Temporary function to add cysbonds at1:at2,at3:at4 etc."
                        )    
-
+    
     args = parser.parse_args()
     run = Run(lig1 = args.lig1,
               lig2 = args.lig2,
               FF= args.FF,
               system = args.system,
               cluster = args.cluster,
-              sphereradius = args.sphereradius
+              sphereradius = args.sphereradius,
+              cysbond = args.cysbond
              )
 
     writedir = run.makedir()
