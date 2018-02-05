@@ -45,5 +45,4 @@ not excluded
 0.000  1.000 
 
 [sequence_restraints]
-ATOM_START_LIG1 ATOM_END_LIG1 1.0 0 0
 WATER_RESTRAINT

@@ -419,14 +419,14 @@ class Run(object):
         replacements['SPHERE']          =   self.sphereradius
         replacements['ATOM_END']        =   '{:<6}'.format(self.atomoffset + lig_total)        
         
-        if self.system == 'water' or 'vacuum':
-            replacements['WATER_RESTRAINT'] = '{:<7}{:<7} 2.0 0 0'.format(self.atomoffset + 1, 
+        if self.system == 'water' or self.system == 'vacuum':
+            replacements['WATER_RESTRAINT'] = '{:<7}{:<7} 1.0 0 1   '.format(self.atomoffset + 1, 
                                                                           self.atomoffset + lig_size1 + 
                                                                           lig_size2
                                                                          )
             
             
-        else:
+        elif self.system == 'protein':
             replacements['WATER_RESTRAINT'] = ''
         
         for eq_file_in in glob.glob(s.ROOT_DIR + '/INPUTS/eq*.inp'):
