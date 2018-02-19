@@ -15,7 +15,7 @@ class Run(object):
     Create FEP files from a common substructure for a given set of
     ligands
     """
-    def __init__(self, lig1, lig2, FF, system, cluster, sphereradius, cysbond, *args, **kwargs):
+    def __init__(self, lig1, lig2, FF, system, cluster, sphereradius, cysbond, start, *args, **kwargs):
         """
         The init method is a kind of constructor, called when an instance
         of the class is created. The method serves to initialize what you
@@ -29,6 +29,7 @@ class Run(object):
         self.cluster = cluster
         self.sphereradius = sphereradius
         self.cysbond = cysbond
+        self.start = start
         
         if self.system == 'protein':
             # Get last atom and residue from complexfile!
@@ -330,8 +331,11 @@ class Run(object):
                     atom1[5] = float(atom1[5]) + 0.001
                     atom1[6] = float(atom1[6]) + 0.001
                     atom1[7] = float(atom1[7]) + 0.001
+                    atom1[8] = float(atom1[8])
+                    atom1[9] = float(atom1[9])
+                    atom1[10] = atom1[10]
                     # FIX string formatting for pdb files
-                    line = '{:6}{:>5}  {:<4}{:<3}{:>6}{:>12}{:>8}{:>8}\n'.format(*atom1)
+                    line = '{:6}{:>5}  {:<4}{:<3}{:>6}{:>12}{:>8}{:>8}{:6.2f}{:6.2f}          {:>2s}\n'.format(*atom1)
               
                     outfile.write(line)
                     
@@ -388,7 +392,13 @@ class Run(object):
         lambdas = lambdas[::-1]
         return lambdas            
     
-    def write_MD(self, lambdas, writedir, lig_size1, lig_size2):
+    def overlapping_atoms(self, writedir):
+        pdbfile = writedir + '/inputfiles/' + self.lig1 + '_' + self.lig2 + '.pdb'
+        reslist = ['LIG', 'LID']
+        overlap_list = f.overlapping_pairs(pdbfile, reslist)
+        return overlap_list
+        
+    def write_MD_05(self, lambdas, writedir, lig_size1, lig_size2):
         lambda_tot = len(lambdas)
         replacements = {}
         file_list1 = []
@@ -487,6 +497,95 @@ class Run(object):
                 elif index == 2:
                     file_list3.append(filename + '.inp')
         return [file_list1, file_list2, file_list3]
+    
+    
+    def write_MD_1(self, lambdas, writedir, lig_size1, lig_size2, overlapping_atoms):
+        totallambda = len(lambdas)
+        file_list_1 = []
+        file_list_2 = []
+        file_list_3 = []
+        replacements = {}
+        lig_total = lig_size1 + lig_size2
+        lambda_1 = []
+        lambda_2 = []
+        
+        replacements['ATOM_START_LIG1'] =   '{:<6}'.format(self.atomoffset + 1)
+        replacements['ATOM_END_LIG1']   =   '{:<7}'.format(self.atomoffset + lig_size1)           
+        replacements['ATOM_START_LIG2'] =   '{:<6}'.format(self.atomoffset + lig_size1 + 1)
+        replacements['ATOM_END_LIG2']   =   '{:<7}'.format(self.atomoffset + lig_size1 + lig_size2)
+        replacements['SPHERE']          =   self.sphereradius
+        replacements['ATOM_END']        =   '{:<6}'.format(self.atomoffset + lig_total)        
+        
+        if self.system == 'water' or self.system == 'vacuum':
+            replacements['WATER_RESTRAINT'] = '{:<7}{:<7} 1.0 0 1   '.format(self.atomoffset + 1, 
+                                                                          self.atomoffset + lig_size1 + 
+                                                                          lig_size2
+                                                                         )
+            
+            
+        elif self.system == 'protein':
+            replacements['WATER_RESTRAINT'] = ''
+        
+        for eq_file_in in glob.glob(s.ROOT_DIR + '/INPUTS/eq*.inp'):
+            eq_file = eq_file_in.split('/')[-1:][0]
+            eq_file_out = writedir + '/' + eq_file
+
+            with open(eq_file_in) as infile, open(eq_file_out, 'w') as outfile:
+                for line in infile:
+                    line = run.replace(line, replacements)
+                    outfile.write(line)
+                    if line == '[distance_restraints]\n':
+                        for line in overlapping_atoms:
+                            outfile.write('{:d} {:d} 0.0 0.01 2 0\n'.format(line[0], line[1]))
+
+                file_list_1.append(eq_file)
+                
+        file_in = s.INPUT_DIR + '/md_1000_0000.inp'
+        file_out = writedir + '/md_1000_0000.inp' 
+        with open(file_in) as infile, open(file_out, 'w') as outfile:
+            for line in infile:
+                line = run.replace(line, replacements)
+                outfile.write(line)
+                if line == '[distance_restraints]\n':
+                    for line in overlapping_atoms:
+                        outfile.write('{:d} {:d} 0.0 0.01 2 0\n'.format(line[0], line[1]))
+                
+        file_list_1.append('md_1000_0000.inp')
+        filenr = 0
+
+        for l in lambdas:
+            if l == '1.000':
+                continue
+            else:
+                filename_N = 'md_1000_0000'
+                step_n = totallambda - filenr - 2
+
+                lambda1 = l
+                lambda2 = lambdas[step_n]
+                filename = 'md_' + lambda1.replace('.', '') + '_' + lambda2.replace('.', '')
+                replacements['FLOAT_LAMBDA1']   =   lambda1 
+                replacements['FLOAT_LAMBDA2']   =   lambda2
+                replacements['FILE']          =   filename
+                replacements['FILE_N'] = filename_N
+
+                # Move to functio
+                pattern = re.compile(r'\b(' + '|'.join(replacements.keys()) + r')\b')
+                file_in = s.INPUT_DIR + '/md_XXXX_XXXX.inp'
+                file_out = writedir + '/' + filename + '.inp'
+
+                with open(file_in) as infile, open(file_out, 'w') as outfile:
+                    for line in infile:
+                        line = pattern.sub(lambda x: replacements[x.group()], line)
+                        outfile.write(line)
+                        if line == '[distance_restraints]\n':
+                            for line in overlapping_atoms:
+                                outfile.write('{:d} {:d} 0.0 0.01 2 0\n'.format(line[0], line[1]))
+
+                filename_N = filename
+                filenr += 1
+                file_list_2.append(filename + '.inp')
+
+        return [file_list_1, file_list_2, file_list_3]
     
     def write_submitfile(self, writedir):
         replacements = {}
@@ -655,7 +754,14 @@ if __name__ == "__main__":
                         dest = "cysbond",
                         default = None,
                         help = "Temporary function to add cysbonds at1:at2,at3:at4 etc."
-                       )    
+                       )
+    
+    parser.add_argument('-l', '--start',
+                        dest = "start",
+                        default = '0.5',
+                        choices = ['1', '0.5', '0'],
+                        help = "Temporary function to add cysbonds at1:at2,at3:at4 etc."
+                       )
     
     args = parser.parse_args()
     run = Run(lig1 = args.lig1,
@@ -664,7 +770,8 @@ if __name__ == "__main__":
               system = args.system,
               cluster = args.cluster,
               sphereradius = args.sphereradius,
-              cysbond = args.cysbond
+              cysbond = args.cysbond,
+              start = args.start
              )
 
     writedir = run.makedir()
@@ -684,9 +791,23 @@ if __name__ == "__main__":
     run.merge_pdbs(inputdir)
     run.write_water_pdb(inputdir)
     lambdas = run.get_lambdas(s.WINDOWS, s.SAMPLING)
-    file_list = run.write_MD(lambdas, inputdir, lig_size1, lig_size2)
+    overlapping_atoms = run.overlapping_atoms(writedir)
+    
+    # Temporary file handling for different offsets, change later
+    if args.start == '0.5':
+        file_list = run.write_MD_05(lambdas, inputdir, lig_size1, lig_size2)
+        run.write_runfile(inputdir, file_list)    
+        
+    if args.start == '1':
+        file_list = run.write_MD_1(lambdas, inputdir, lig_size1, lig_size2, overlapping_atoms)
+        run.write_runfile(inputdir, file_list)    
+        
+    if args.start == '0':
+        #file_list = run.write_MD(lambdas, inputdir, lig_size1, lig_size2)
+        #run.write_runfile(inputdir, file_list)
+        print 'fix later'
+    
     run.write_submitfile(writedir)
-    run.write_runfile(inputdir, file_list)
     run.write_qprep(inputdir)
     run.qprep(inputdir)
     

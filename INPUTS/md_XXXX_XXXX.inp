@@ -46,3 +46,5 @@ FLOAT_LAMBDA1 FLOAT_LAMBDA2
 
 [sequence_restraints]
 WATER_RESTRAINT
+
+[distance_restraints]

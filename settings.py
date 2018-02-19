@@ -40,8 +40,8 @@ WINDOWS='20'
 TEMPERATURE='298'
 
 # Lambda sampling options
-#SAMPLING='linear'i
-SAMPLING='sigmoidal'
+SAMPLING='linear'
+AMPLING='sigmoidal'
 #SAMPLING='exponential'
 #SAMPLING='reverse_exponential'
 
