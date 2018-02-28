@@ -552,7 +552,7 @@ class Run(object):
                     outfile.write(line)
                     if line == '[distance_restraints]\n':
                         for line in overlapping_atoms:
-                            outfile.write('{:d} {:d} 0.0 0.2 0.5 0\n'.format(line[0], line[1]))
+                            outfile.write('{:d} {:d} 0.0 0.3 0.5 0\n'.format(line[0], line[1]))
 
                 file_list_1.append(eq_file)
                 
@@ -564,7 +564,7 @@ class Run(object):
                 outfile.write(line)
                 if line == '[distance_restraints]\n':
                     for line in overlapping_atoms:
-                        outfile.write('{:d} {:d} 0.0 0.2 0.5 0\n'.format(line[0], line[1]))
+                        outfile.write('{:d} {:d} 0.0 0.3 0.5 0\n'.format(line[0], line[1]))
                 
         file_list_1.append('md_1000_0000.inp')
         filenr = 0
@@ -595,7 +595,7 @@ class Run(object):
                         outfile.write(line)
                         if line == '[distance_restraints]\n':
                             for line in overlapping_atoms:
-                                outfile.write('{:d} {:d} 0.0 0.2 0.5 0\n'.format(line[0], line[1]))
+                                outfile.write('{:d} {:d} 0.0 0.3 0.5 0\n'.format(line[0], line[1]))
 
                 filename_N = filename
                 filenr += 1
