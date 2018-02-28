@@ -261,13 +261,19 @@ class Run(object):
                 FEP_vdw.append(line2)
         return FEP_vdw
         
-    def write_FEP_file(self, change_charges, change_vdw, FEP_vdw, writedir):
+    def write_FEP_file(self, change_charges, change_vdw, FEP_vdw, writedir, lig_size1, lig_size2):
+        lig_size1 = int(lig_size1)
+        lig_size2 = int(lig_size2)
+        lig_tot = lig_size1 + lig_size2
+        
+        
         with open(writedir + '/FEP1.fep', 'w') as outfile:
             total_atoms = len(change_charges)
             outfile.write('!info: ' + self.lig1 + ' --> ' + self.lig2 + '\n')
             outfile.write('[FEP]\n')
-            outfile.write('states 2\n\n')
-            
+            outfile.write('states 2\n')
+            outfile.write('use_softcore_max_potential on\n\n')
+
             # defining the atom order taken user given offset into account
             outfile.write('[atoms]\n')
             for i in range(1, total_atoms + 1):
@@ -290,6 +296,16 @@ class Run(object):
                 outfile.write(line + '\n')
                 
             outfile.write('DUM       0.0000    0.0000    0         0         0.0000    0.0000    1.0080')
+            outfile.write('\n\n')
+            
+            outfile.write('[softcore]\n')
+            # ADD softcore
+            for i in range(1, lig_size1 + 1):
+                outfile.write("{:<5}{:>10}{:>10}\n".format(str(i),'0', '20'))
+                
+            for i in range(1 + lig_size1, lig_tot + 1):
+                outfile.write("{:<5}{:>10}{:>10}\n".format(str(i),'20', '0'))
+            
             outfile.write('\n\n')
             
             # changing atom types
@@ -536,7 +552,7 @@ class Run(object):
                     outfile.write(line)
                     if line == '[distance_restraints]\n':
                         for line in overlapping_atoms:
-                            outfile.write('{:d} {:d} 0.0 0.01 2 0\n'.format(line[0], line[1]))
+                            outfile.write('{:d} {:d} 0.0 0.2 0.5 0\n'.format(line[0], line[1]))
 
                 file_list_1.append(eq_file)
                 
@@ -548,16 +564,16 @@ class Run(object):
                 outfile.write(line)
                 if line == '[distance_restraints]\n':
                     for line in overlapping_atoms:
-                        outfile.write('{:d} {:d} 0.0 0.01 2 0\n'.format(line[0], line[1]))
+                        outfile.write('{:d} {:d} 0.0 0.2 0.5 0\n'.format(line[0], line[1]))
                 
         file_list_1.append('md_1000_0000.inp')
         filenr = 0
 
         for l in lambdas:
             if l == '1.000':
+                filename_N = 'md_1000_0000'
                 continue
             else:
-                filename_N = 'md_1000_0000'
                 step_n = totallambda - filenr - 2
 
                 lambda1 = l
@@ -579,7 +595,7 @@ class Run(object):
                         outfile.write(line)
                         if line == '[distance_restraints]\n':
                             for line in overlapping_atoms:
-                                outfile.write('{:d} {:d} 0.0 0.01 2 0\n'.format(line[0], line[1]))
+                                outfile.write('{:d} {:d} 0.0 0.2 0.5 0\n'.format(line[0], line[1]))
 
                 filename_N = filename
                 filenr += 1
@@ -787,7 +803,7 @@ if __name__ == "__main__":
     # Write the merged files
     run.change_lib(changes_for_libfiles, inputdir)
     FEP_vdw = run.change_prm(changes_for_prmfiles, inputdir)
-    run.write_FEP_file(change_charges, change_vdw, FEP_vdw, inputdir)
+    run.write_FEP_file(change_charges, change_vdw, FEP_vdw, inputdir, lig_size1, lig_size2)
     run.merge_pdbs(inputdir)
     run.write_water_pdb(inputdir)
     lambdas = run.get_lambdas(s.WINDOWS, s.SAMPLING)

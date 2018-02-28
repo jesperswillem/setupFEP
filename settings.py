@@ -40,8 +40,8 @@ WINDOWS='20'
 TEMPERATURE='298'
 
 # Lambda sampling options
-SAMPLING='linear'
-AMPLING='sigmoidal'
+#SAMPLING='linear'
+SAMPLING='sigmoidal'
 #SAMPLING='exponential'
 #SAMPLING='reverse_exponential'
 
@@ -59,6 +59,15 @@ HEBBE = {'NODES'      : '1',
          'TIME'       : '0-02:00:00',  # d-hh:mm:ss
          'MODULES'    : 'module load GCC/5.4.0-2.26\nmodule load OpenMPI/1.10.3\n', # Add a \n for every added module
          'QDYN'       : 'qdyn=/c3se/users/jwillem/Hebbe/software/qsource/bin/qdyn5p', #fix qdyn= !!!!!
+         'QPREP'      : '/home/apps/q-5.06/qprep', # NOTE: change to where you are setting up, not where you are running!
+         'ACCOUNT'    : 'SNIC2017-1-549'
+        }
+
+KEBNE = {'NODES'      : '1',
+         'NTASKS'     : '28',
+         'TIME'       : '0-04:00:00',  # d-hh:mm:ss
+         'MODULES'    : 'module load gompi/2017b\n', # Add a \n for every added module
+         'QDYN'       : 'qdyn=/home/w/wije/pfs/software/Q5/bin/qdyn5p', #fix qdyn= !!!!!
          'QPREP'      : '/home/apps/q-5.06/qprep', # NOTE: change to where you are setting up, not where you are running!
          'ACCOUNT'    : 'SNIC2017-1-549'
         }
