@@ -59,6 +59,7 @@ class Run(object):
             os.makedirs(directory + '/inputfiles')
 
         return directory
+    
     def replace(self, string, replacements):
         pattern = re.compile(r'\b(' + '|'.join(replacements.keys()) + r')\b')
         replaced_string = pattern.sub(lambda x: replacements[x.group()], string)
@@ -247,7 +248,7 @@ class Run(object):
         #AND return the vdW list for the FEP file
         FEP_vdw = []
         for line in prm_merged['vdw']:
-            if len(line) > 1 and line[0] != '!':
+            if len(line) > 1 and line[0] != '!' and line[0:1]:
                 line = line.split()
                 line2 = "{:10}{:10}{:10}{:10}{:10}{:10}{:10}{:10}".format(line[0],
                                                                       line[1],
@@ -443,7 +444,8 @@ class Run(object):
         replacements['ATOM_START_LIG2'] =   '{:<6}'.format(self.atomoffset + lig_size1 + 1)
         replacements['ATOM_END_LIG2']   =   '{:<7}'.format(self.atomoffset + lig_size1 + lig_size2)
         replacements['SPHERE']          =   self.sphereradius
-        replacements['ATOM_END']        =   '{:<6}'.format(self.atomoffset + lig_total)        
+        replacements['ATOM_END']        =   '{:<6}'.format(self.atomoffset + lig_total)
+        replacements['EQ_LAMBDA']       =   '0.500 0.500'
         
         if self.system == 'water' or self.system == 'vacuum':
             replacements['WATER_RESTRAINT'] = '{:<7}{:<7} 1.0 0 1   '.format(self.atomoffset + 1, 
@@ -463,6 +465,9 @@ class Run(object):
                 for line in infile:
                     line = run.replace(line, replacements)
                     outfile.write(line)
+                    if line == '[distance_restraints]\n':
+                        for line in overlapping_atoms:
+                            outfile.write('{:d} {:d} 0.0 0.1 1.5 0\n'.format(line[0], line[1]))                    
 
                 file_list1.append(eq_file)
                 
@@ -472,6 +477,9 @@ class Run(object):
             for line in infile:
                 line = run.replace(line, replacements)
                 outfile.write(line)
+                if line == '[distance_restraints]\n':
+                    for line in overlapping_atoms:
+                        outfile.write('{:d} {:d} 0.0 0.1 1.5 0\n'.format(line[0], line[1]))                
         file_list1.append('md_0500_0500.inp')
         
         for lambdas in [lambda_1, lambda_2]:
@@ -504,6 +512,9 @@ class Run(object):
                     for line in infile:
                         line = pattern.sub(lambda x: replacements[x.group()], line)
                         outfile.write(line)
+                        if line == '[distance_restraints]\n':
+                            for line in overlapping_atoms:
+                                outfile.write('{:d} {:d} 0.0 0.2 0.5 0\n'.format(line[0], line[1]))
 
                 filename_N = filename
                 
@@ -531,7 +542,8 @@ class Run(object):
         replacements['ATOM_END_LIG2']   =   '{:<7}'.format(self.atomoffset + lig_size1 + lig_size2)
         replacements['SPHERE']          =   self.sphereradius
         replacements['ATOM_END']        =   '{:<6}'.format(self.atomoffset + lig_total)        
-        
+        replacements['EQ_LAMBDA']       =   '1.000 0.000'
+
         if self.system == 'water' or self.system == 'vacuum':
             replacements['WATER_RESTRAINT'] = '{:<7}{:<7} 1.0 0 1   '.format(self.atomoffset + 1, 
                                                                           self.atomoffset + lig_size1 + 
@@ -637,6 +649,12 @@ class Run(object):
         with open(run_file_in) as infile, open(run_file_out, 'w') as outfile:
             block = 0
             for line in infile:
+                if line.strip() == '#SBATCH -A ACCOUNT':
+                    try:
+                        replacements['ACCOUNT']
+                        
+                    except:
+                        line = ''
                 line = run.replace(line, replacements)
                 outfile.write(line)
 
@@ -708,7 +726,7 @@ class Run(object):
                     for cys in cysbond:
                         at1 = cys.split(':')[0]
                         at2 = cys.split(':')[1]
-                        outfile.write('addbond ' + at1 + ' ' + at2 + '\n' )
+                        outfile.write('addbond ' + at1 + ' ' + at2 + ' y \n' )
                     continue
                 outfile.write(line)
         
@@ -775,8 +793,8 @@ if __name__ == "__main__":
     parser.add_argument('-l', '--start',
                         dest = "start",
                         default = '0.5',
-                        choices = ['1', '0.5', '0'],
-                        help = "Temporary function to add cysbonds at1:at2,at3:at4 etc."
+                        choices = ['1', '0.5'],
+                        help = "Starting FEP in the middle or endpoint"
                        )
     
     args = parser.parse_args()
@@ -817,11 +835,6 @@ if __name__ == "__main__":
     if args.start == '1':
         file_list = run.write_MD_1(lambdas, inputdir, lig_size1, lig_size2, overlapping_atoms)
         run.write_runfile(inputdir, file_list)    
-        
-    if args.start == '0':
-        #file_list = run.write_MD(lambdas, inputdir, lig_size1, lig_size2)
-        #run.write_runfile(inputdir, file_list)
-        print 'fix later'
     
     run.write_submitfile(writedir)
     run.write_qprep(inputdir)

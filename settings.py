@@ -40,18 +40,18 @@ WINDOWS='20'
 TEMPERATURE='298'
 
 # Lambda sampling options
-#SAMPLING='linear'
-SAMPLING='sigmoidal'
+SAMPLING='linear'
+#SAMPLING='sigmoidal'
 #SAMPLING='exponential'
 #SAMPLING='reverse_exponential'
 
 # CLUSTER INPUTS. To add your own cluster, use the same input as below
-CSB = {'NODES'      : '1',
-       'NTASKS'     : '16',
-       'TIME'       : '0-03:00:00',  # d-hh:mm:ss
-       'MODULES'    : 'module load openmpi-x86_64\n', # Add a \n for every added module
-       'QDYN'       : 'qdyn=/home/apps/q-5.06/qdynp',
-       'QPREP'      : '/home/apps/q-5.06/qprep'
+CSB = {'NODES'        : '1',
+       'NTASKS'       : '16',
+       'TIME'         : '0-03:00:00',  # d-hh:mm:ss
+       'MODULES'      : 'module load openmpi-x86_64\n', # Add a \n for every added module
+       'QDYN'         : 'qdyn=/home/apps/q-5.06/qdynp',
+       'QPREP'        : '/home/apps/q-5.06/qprep'
       }
 
 HEBBE = {'NODES'      : '1',
@@ -64,6 +64,15 @@ HEBBE = {'NODES'      : '1',
         }
 
 KEBNE = {'NODES'      : '1',
+         'NTASKS'     : '28',
+         'TIME'       : '0-04:00:00',  # d-hh:mm:ss
+         'MODULES'    : 'module load gompi/2017b\n', # Add a \n for every added module
+         'QDYN'       : 'qdyn=/home/w/wije/pfs/software/Q5/bin/qdyn5p', #fix qdyn= !!!!!
+         'QPREP'      : '/home/apps/q-5.06/qprep', # NOTE: change to where you are setting up, not where you are running!
+         'ACCOUNT'    : 'SNIC2017-1-549'
+        }
+
+STALLO = {'NODES'      : '1',
          'NTASKS'     : '28',
          'TIME'       : '0-04:00:00',  # d-hh:mm:ss
          'MODULES'    : 'module load gompi/2017b\n', # Add a \n for every added module

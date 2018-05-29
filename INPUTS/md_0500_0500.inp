@@ -46,3 +46,5 @@ not excluded
 
 [sequence_restraints]
 WATER_RESTRAINT
+
+[distance_restraints]

@@ -2,8 +2,7 @@
 #
 #SBATCH --nodes=NODES
 #SBATCH --ntasks-per-node=NTASKS
-#SBATCH -A ACCOUNT
-
+#SBATCH -A ACCOUNT 
 #              d-hh:mm:ss
 #SBATCH --time=TIME
 

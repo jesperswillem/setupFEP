@@ -40,7 +40,7 @@ fep                       FEP_VAR
 not excluded
 
 [lambdas]
-1.000 0.000
+EQ_LAMBDA
 
 [sequence_restraints]
 WATER_RESTRAINT

@@ -443,7 +443,7 @@ if __name__ == "__main__":
                         dest = "merge",
                         action = 'store_false',
                         default = True,        
-                        help = "Use this flag if you do not want the ligand prms to be merged   ")
+                        help = "Use this flag if you do not want the ligand prms to be merged")
     
     args = parser.parse_args()
     run = Run(lig = args.lig,

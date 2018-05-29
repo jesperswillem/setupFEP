@@ -112,6 +112,12 @@ LP      2447.83 2447.83 46.79 1730.88   33.09   30.97
 LP2     2326.69 2326.69 37.47 1645.22   26.49   14.03
 LP3     2844.35 2844.35 45.80 2011.26   32.39   15.04
 
+!PO4
+TP3   2447.79  2447.79    46.79  1730.85    33.09    30.97 ! high   P   in  PO3--
+TO2Z   626.39   626.39    23.67   442.92    16.74    16.00 ! high   O=   in OP
+TOS    401.02   401.02    17.32   283.56    12.25    16.00 ! high   OR in P=O or P=S
+THO      0.01     0.01     0.04     0.00     0.03     1.01 ! high   H(O): alcohols
+
 ! Ligand vdW parameters
 ! End ligand vdW parameters
 
@@ -298,6 +304,11 @@ LP2     LP2     800.0   1.53
 LP2     LH1     800.0   1.53
 LH1     LH1     1000.0  1.39
 LP2     LP3     800.0   1.53
+
+!PO4
+ TP3  TO2Z  1050.00     1.52 !high         0  => 0     P3-O2Z     ==> P3-O2Z
+ TP3   TOS   460.00     1.63 !high         0  => 0     P3-OS      ==> P3-OS
+ TOS   THO  1106.00     0.94 !high         0  => 0     OS-HO      ==> OS-HO
 
 ! Ligand bond parameters
 ! End ligand bond parameters
@@ -774,6 +785,11 @@ LP2     LH1     LH1     120.0   120.0   0.000   0.000
 LP2     LP2     LP3     110.0   111.0   0.000   0.000
 LC2     LOS     LC      100.0   120.0   0.000   0.000
 LOM      LP       LOM   140.01  120.0   0.000   0.000 !Hugo
+
+!PO4
+TO2Z   TP3   TOS   200.00   107.00  !high     0   O2Z-P3-OS         ==> OS-P3-O2Z
+TO2Z   TP3  TO2Z   280.00   114.00  !high     0   O2Z-P3-O2Z        ==> O2Z-P3-O2Z
+ TP3   TOS   THO   130.00    92.75  !high     0   P3-OS-HO          ==> P3-OS-HO
 
 
 ! Ligand angle parameters
@@ -2304,6 +2320,9 @@ LP2      LP2      LP2      LP3        1.550   3.000   0.000 1.00 !
 LOM      LP       LOS      LC2        0.000   1.000   0.000 1.00 !!! Missing in Tieleman
 !LOS      LP       LOS      LC2        0.125   -1.000   0.000 3.00 !Is this correct?
 LOS      LP       LOS      LC2        0.375   1.000   0.000 3.00 !
+
+!PO4
+TO2Z   TP3    TOS    THO      0.000     1    0.000   1 !high   0   O2Z-P3-OS-HO         ==> O2Z-P2-OS-HO
 
 ! Ligand torsion parameters
 

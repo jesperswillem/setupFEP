@@ -58,7 +58,7 @@ def overlapping_pairs(pdbfile, reslist, include=('ATOM', 'HETATM')):
             if at1[0] != at2[0]:
                 if ((at1[1]-at2[1])**2 + 
                     (at1[2]-at2[2])**2 + 
-                    (at1[3]-at2[3])**2) < 0.1:
+                    (at1[3]-at2[3])**2) < 0.8:
                     if at1[4] == at2[4] and at1[4].strip() != 'H':
                         overlapping_atoms.append([at1[0], at2[0]])
                         
