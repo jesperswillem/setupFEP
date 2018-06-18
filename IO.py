@@ -50,5 +50,6 @@ def pdb_parse_in(line, include=('ATOM','HETATM')):
 def pdb_parse_out(line):
     """
     Takes a list and parses it into a pdb writeable line
-    """    
-    line = '{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:4d}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}'.format(line)
+    """
+    line = '{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:4d}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}'.format(*line)
+    return line

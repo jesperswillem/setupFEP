@@ -31,6 +31,20 @@ def COG(pdbfile, include='ATOM,HETATM'):
         center = [round(center[i], 3) for i in range(3)]
     return center
 
+def eucledian_overlap(coord1, coord2, distance):
+    """
+    Calculates whether two points in space overlap within a certain distance
+    Returns:
+        Boolean
+    """
+    if ((coord1[0]-coord2[0])**2 + 
+        (coord1[1]-coord2[1])**2 + 
+        (coord1[2]-coord2[2])**2) < distance**2:
+        return True
+
+    else:
+        return False
+
 def overlapping_pairs(pdbfile, reslist, include=('ATOM', 'HETATM')):
     """
     Calculates whether input pdb has overlaying atoms, based on provided residue names
