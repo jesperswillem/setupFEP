@@ -31,7 +31,7 @@ def COG(pdbfile, include='ATOM,HETATM'):
         center = [round(center[i], 3) for i in range(3)]
     return center
 
-def eucledian_overlap(coord1, coord2, distance):
+def euclidian_overlap(coord1, coord2, distance):
     """
     Calculates whether two points in space overlap within a certain distance
     Returns:

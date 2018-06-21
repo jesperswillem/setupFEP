@@ -1,0 +1,15 @@
+rl ../../FF/OPLS2015.lib 
+rprm ../../FF/OPLS2015.prm 
+rp protein_decharge.pdb
+set solute_density 0.05794 
+set solvent_pack 1.6
+boundary 1 32.365 -10.931   4.541 25.0
+solvate 32.365 -10.931   4.541 25.0 1 HOH
+maketop MKC_p 
+addbond 1:N 45:CA
+writetop prot.top 
+wp top_p.pdb y 
+mask none 
+mask not excluded 
+wp complexnotexcluded.pdb y 
+q 
