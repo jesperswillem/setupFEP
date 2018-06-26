@@ -1,3 +1,8 @@
+import re
+import shlex
+from subprocess import check_output
+import os
+
 def pdb_parse_in(line, include=('ATOM','HETATM')):
     """
     Takes a pdb file line and parses it into a list, according to Atomic Coordinate Entry Format 
@@ -51,5 +56,60 @@ def pdb_parse_out(line):
     """
     Takes a list and parses it into a pdb writeable line
     """
-    line = '{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:4d}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}'.format(*line)
+    line = '{:6s}{:5d} {:^4s}{:1s}{:4s}{:1s}{:4d}{:1s}   '\
+           '{:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}'.format(*line)
     return line
+
+def replace(string, replacements):
+    pattern = re.compile(r'\b(' + '|'.join(replacements.keys()) + r')\b')
+    replaced_string = pattern.sub(lambda x: replacements[x.group()], string)
+    return replaced_string
+
+def run_command(executable, options, string = False):
+    """
+    Takes three variables, the executable location and its options as strings and a tag if the
+    options need to be split or not (e.g. Q runs with one string), and runs the program.
+    Returns the output of that program as an unformatted string.
+    """
+    if string == False:
+        args = shlex.split(executable + options)
+        out = check_output(args)
+
+    else:
+        os.system(executable + options)
+        out = None
+
+    return out
+
+def AA(AA):
+    """
+    Handy dictionary to convert 3 letter AA code to one and vice versa
+    """
+    threeAA = {'CYS': 'C', 'CYX': 'C', 'ASH': 'D', 'ASP': 'D', 'SER': 'S', 
+               'GLN': 'Q', 'LYN': 'K', 'LYS': 'K', 'ILE': 'I', 'PRO': 'P', 
+               'THR': 'T', 'PHE': 'F', 'ASN': 'N', 'GLY': 'G', 'HID': 'H', 
+               'HIP': 'H', 'HIE': 'H', 'HIS': 'H', 'LEU': 'L', 'ARN': 'R', 
+               'ARG': 'R', 'TRP': 'W', 'ALA': 'A', 'VAL': 'V', 'GLH': 'E', 
+               'GLU': 'E', 'TYR': 'Y', 'MET': 'M',}
+    
+    fourAA = { 'CCYS': 'C', 'CASP': 'D', 'CASH': 'H', 'CSER': 'S', 
+               'CGLN': 'Q', 'CLYN': 'K', 'CLYS': 'K', 'CILE': 'I', 
+               'CPRO': 'P', 'CTHR': 'T', 'CPHE': 'F', 'CASN': 'N', 
+               'CGLY': 'G', 'CHIE': 'H', 'CHID': 'H', 'CHIP': 'H', 
+               'CLEU': 'L', 'CARG': 'R', 'CARN': 'R', 'CTRP': 'W', 
+               'CALA': 'A', 'CVAL': 'V', 'CGLU': 'E', 'CGLH': 'E',
+               'CTYR': 'Y', 'CMET': 'M'}
+    
+    oneAA = {v: k for k, v in threeAA.iteritems()}
+    
+    if len(AA) == 4:
+        AA = fourAA[AA]
+    
+    if len(AA) == 3:
+        AA = threeAA[AA]
+        
+    if len(AA) == 1:
+        AA = oneAA[AA]
+    return(AA)
+
+    

@@ -1,13 +1,23 @@
-rl ../../FF/OPLS2015.lib 
-rprm ../../FF/OPLS2015.prm 
-rp protein_decharge.pdb
+rl /Users/willemjespers/Software/setupFEP/FF/OPLS2015.lib 
+rprm /Users/willemjespers/Software/setupFEP/FF/OPLS2015.prm
+! TO DO Change if protein system is used
+rp 4eiy_tmp.pdb 
 set solute_density 0.05794 
-set solvent_pack 1.6
-boundary 1 32.365 -10.931   4.541 25.0
-solvate 32.365 -10.931   4.541 25.0 1 HOH
+! NOTE, this is now large for water system, change for protein system
+set solvent_pack 2.5
+boundary 1 6.702 7.245 19.612 25.0
+solvate 6.702 7.245 19.612 25.0 1 HOH
+!addbond at1 at2 y
+addbond 254:SG 251:SG y
+addbond 251:SG 254:SG y
+addbond 168:SG 79:SG y
+addbond 148:SG 76:SG y
+addbond 73:SG 161:SG y
+addbond 76:SG 148:SG y
+addbond 79:SG 168:SG y
+addbond 161:SG 73:SG y
 maketop MKC_p 
-addbond 1:N 45:CA
-writetop prot.top 
+writetop tmp.top 
 wp top_p.pdb y 
 mask none 
 mask not excluded 

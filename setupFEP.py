@@ -60,6 +60,7 @@ class Run(object):
 
         return directory
     
+    # Moved to IO, change in the code!
     def replace(self, string, replacements):
         pattern = re.compile(r'\b(' + '|'.join(replacements.keys()) + r')\b')
         replaced_string = pattern.sub(lambda x: replacements[x.group()], string)

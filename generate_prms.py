@@ -161,6 +161,7 @@ class Run(object):
         # Add other parameter generators later
         v = 'OPLS 14'
         v = v.split(' ')
+        # Running command line tool has been moved to IO, change function!
         if v[0] == 'OPLS':
             ffld_serv = s.SCHROD_DIR + '/utilities/ffld_server'
             options = ' -ipdb '+ self.lig + '.pdb -print_parameters -version ' + v[1]

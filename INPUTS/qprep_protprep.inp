@@ -1,5 +1,5 @@
 rl FF_LIB 
-rprm LIGPRM 
+rprm FF_PRM
 ! TO DO Change if protein system is used
 rp PROTPDB 
 set solute_density 0.05794 
@@ -9,7 +9,7 @@ boundary 1 CENTER SPHERE
 solvate CENTER SPHERE SOLVENT
 !addbond at1 at2 y
 maketop MKC_p 
-writetop dualtop.top 
+writetop tmp.top 
 wp top_p.pdb y 
 mask none 
 mask not excluded 

@@ -17,6 +17,11 @@ REPO_DIR = os.path.join(ROOT_DIR, "templates")
 # The directories to the input FF and run related input files are given here
 FF_DIR = os.path.join(ROOT_DIR, "FF")
 INPUT_DIR = os.path.join(ROOT_DIR, "INPUTS")
+# Dicionary of locations of Q executables
+Q_DIR = {'CSB':'/home/jespers/software/q_510/bin/',
+         'LOCAL':'/Users/willemjespers/Software/q_510/bin/'
+        }
+BIN = os.path.join(ROOT_DIR, "bin")
 
 SCHROD_DIR = '/home/apps/schrodinger2017/'
 
