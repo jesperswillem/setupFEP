@@ -2,6 +2,8 @@ import argparse
 from subprocess import check_output
 import os
 import collections
+from time import gmtime, strftime
+import numpy as np
 
 import functions as f
 import settings as s
@@ -9,30 +11,34 @@ import IO
 
 class Run(object):
     """
-    Create FEP files from a common substructure for a given set of
-    ligands
+    Prepare a protein for usage in spherical boundary conditions.
     """
-    def __init__(self, prot, sphereradius, spherecenter, include, water, *args, **kwargs):
-        """
-        The init method is a kind of constructor, called when an instance
-        of the class is created. The method serves to initialize what you
-        want to do with the object.
-        """
+    def __init__(self, prot, sphereradius, spherecenter, include, water, verbose, *args, **kwargs):
         self.prot = prot
         self.radius = float(sphereradius)
         self.center = spherecenter
         self.include = include
         self.water = water
+        self.verbose = verbose
         self.PDB = {}
-        # Log file list to keep track of stuff to write out
-        self.log = {'CENTER':None,
+        self.log = {'INPUT':'protPREP.py -p {} -r {} -c {} -w={} -V={}'.format(prot, 
+                                                                               sphereradius, 
+                                                                               spherecenter, 
+                                                                               water,
+                                                                               verbose
+                                                                              ),
+                    'CENTER':None,
                     'DECHARGE':[],
+                    'CHARGE':[],
+                    'TOTAL_CHARGE':0,
                     'CTERM':[],
                     'CYX':[],
                     'QRESN':{},
-                    'QRES_LIST':[]
+                    'PDB2Q':{},
+                    'QRES_LIST':[],
+                    'TIME':strftime("%Y-%m-%d %H:%M:%S", gmtime()),
                    }
-        
+    
     def get_center_coordinates(self):
         center = self.center
         center = center.split(':')
@@ -82,6 +88,7 @@ class Run(object):
                         RES_ref = RES
                         i += 1
                         self.log['QRESN'][line[6]] = i
+                        self.log['PDB2Q'][i] = [line[6]]
                         if line[4].strip() != 'HOH':
                             self.log['QRES_LIST'].append('{:<10d}{:<10d}{:<10}'.format(i, 
                                                                                   int([line[6]][0]),
@@ -89,11 +96,11 @@ class Run(object):
                                                                                  ))
     
     def decharge(self):
-        charged_res = {'GLU':['GLH', 'CD'], 
-                       'ASP':['ASH', 'CG'], 
-                       'ARG':['ARN', 'CZ'], 
-                       'LYS':['LYN', 'NZ'], 
-                       'HIP':['HID', 'CG']
+        charged_res = {'GLU':['GLH', 'CD', -1], 
+                       'ASP':['ASH', 'CG', -1], 
+                       'ARG':['ARN', 'CZ', 1], 
+                       'LYS':['LYN', 'NZ', 1], 
+                       'HIP':['HID', 'CG', 1]
                       }
         
         coord1 = self.center
@@ -111,9 +118,10 @@ class Run(object):
                              ]
                     if f.euclidian_overlap(coord1, coord2, rest_bound) == False:
                         decharge.append(at[6])
-                        self.log['DECHARGE'].append('{} {}'.format(at[6], 
-                                                                   at[4]
-                                                                  ))
+                        outline = '{:<10}{:<10}{:<10}'.format(self.log['QRESN'][at[6]],
+                                                                                at[6], 
+                                                                                at[4])
+                        self.log['DECHARGE'].append(outline)
                         
         # Check if the decharged residue is part of a salt bridge and
         # neutralize this residue as well
@@ -135,18 +143,24 @@ class Run(object):
                             if at != at_2 and at_2[6] not in decharge:
                                 if f.euclidian_overlap(coord1, coord2, 4.0) == True:
                                     decharge.append(at_2[6])
-                                    self.log['DECHARGE'].append('{} {}'.format(at_2[6], 
-                                                                               at_2[4]
-                                                                              ))
+                                    outline = '{:<10}{:<10}{:<10}'.format(self.log['QRESN'][at_2[6]],
+                                                                                            at_2[6], 
+                                                                                            at_2[4])
+                                    self.log['DECHARGE'].append(outline)
 
-        
+        # Get the charged residues in the sphere and the total charge of these residues in the sphere
         for key in self.PDB:
             at = self.PDB[key]
-            if self.PDB[key][6] in decharge:
-                self.PDB[key][4] = charged_res[at[4]][0]
+            if at[6] in decharge:
+                at[4] = charged_res[at[4]][0]
                 
             else:
-                continue
+                if at[4] in charged_res:
+                    if at[2].strip() == charged_res[at[4]][1]:
+                        self.log['CHARGE'].append('{:<10}{:<10}{:<10}'.format(self.log['QRESN'][at[6]],
+                                                                              at[6], 
+                                                                              at[4]))
+                        self.log['TOTAL_CHARGE'] += charged_res[at[4]][2]
             
     def set_OXT(self):
         CTERM = []
@@ -162,26 +176,41 @@ class Run(object):
                 self.PDB[key][4] = 'C' + at[4]
                 
     def get_CYX(self):
-        cys = {}
+        cys = []
         cyx = []
         cys_bond = 2.2
+        cys_mat = []
+        i = 0
+        k = -1
         
-        # Reduce coordinate matrix
+        # Reduce coordinate array
         for key in self.PDB:
             at = self.PDB[key]
             if at[4] == 'CYS' and at[2].strip() == 'SG':
-                cys[at[6]] = [at[8], at[9], at[10]]
+                cys.append([at[6], (at[8], at[9], at[10])])
         
-        # Find S-S bonds
+        # Construct S-S bond matrix
         for SG_1 in cys:
+            cys_list = [SG_1[0]]
             for SG_2 in cys:
-                if SG_1 != SG_2:
-                    if SG_1 not in cyx or SG_2 not in cyx:
-                        if f.euclidian_overlap(cys[SG_1], cys[SG_2], cys_bond) == True:
-                            cyx.append(int(SG_1))
-                            SG_1_Q = self.log['QRESN'][SG_1]
-                            SG_2_Q = self.log['QRESN'][SG_2]
-                            self.log['CYX'].append('{}:SG {}:SG'.format(SG_1_Q, SG_2_Q))
+                cys_list.append(f.euclidian_overlap(SG_1[1], SG_2[1], cys_bond))
+            cys_mat.append(cys_list)
+        
+        total = len(cys_mat[0]) -1
+        
+        for line in cys_mat:
+            k += 1
+            for j in range(i, total):
+                if cys_mat[i][j+1] == True and cys_mat[k][0] != cys_mat[j][0]:
+                    cyx.append(cys_mat[k][0])
+                    cyx.append(cys_mat[j][0])
+                    outline = '{:<10}{:<10}{:<10}{:<10}'.format(self.log['QRESN'][cys_mat[k][0]], 
+                                                                self.log['QRESN'][cys_mat[j][0]],
+                                                                cys_mat[k][0],
+                                                                cys_mat[j][0])
+                    self.log['CYX'].append(outline)
+            
+            i += 1
 
         for key in self.PDB:
             at = self.PDB[key]
@@ -210,9 +239,9 @@ class Run(object):
                 outfile.write(line)
                 if line[0:8] == '!addbond':
                     for line in self.log['CYX']:
-                        outline = 'addbond {} y\n'.format(line)
-                        outfile.write(outline)
-            
+                        line = line.split()
+                        outline = 'addbond {}:SG {}:SG y\n'.format(*line)
+                        outfile.write(outline)            
         
     def run_qprep(self):
         qprep = s.Q_DIR['LOCAL'] + 'qprep'
@@ -264,28 +293,56 @@ class Run(object):
                 
     def write_log(self):
         with open('protPREP.log', 'w') as outfile:
-            outfile.write('The following residues have been decharged:\n')
+            outfile.write('--------------------------------------------------------------------\n')
+            outfile.write('This file contains some output information regarding the preperation\n')
+            outfile.write('process of the protein for spherical boundary conditions in Q.\n\n')
+            outfile.write('The command line input was:\n')
+            outfile.write('{}\n\n'.format(self.log['INPUT']))
+            outfile.write('{:47}{:>21}\n'.format('Date:', 
+                                                  self.log['TIME']))
+            outfile.write('{:47}{:>21}\n'.format('Inputfile:', 
+                                                  self.prot))
+            outfile.write('{:47}{:>7.3f}{:>7.3f}{:>7.3f}\n'.format('Sphere center:',
+                                                                   self.center[0],
+                                                                   self.center[1],
+                                                                   self.center[2]))
+            outfile.write('{:47}{:>21}\n'.format('Total charge in sphere:', 
+                                                  self.log['TOTAL_CHARGE']))
+            outfile.write('--------------------------------------------------------------------')  
+            outfile.write('\nThe following residues have been decharged:\n')
+            outfile.write('{:10}{:10}{:10}\n'.format('Q_RESN', 'PDB_IN', 'RESNAME'))
             for line in self.log['DECHARGE']:
                 outfile.write(line + '\n')
                 
+            outfile.write('--------------------------------------------------------------------')
+            outfile.write('\nThe following charged residues are in the sphere:\n')
+            outfile.write('{:10}{:10}{:10}\n'.format('Q_RESN', 'PDB_IN', 'RESNAME'))
+            for line in self.log['CHARGE']:
+                outfile.write(line + '\n')
+            
+            outfile.write('--------------------------------------------------------------------')  
             outfile.write('\n')
             outfile.write('The following S-S bonds have been found:\n')
+            outfile.write('{:10}{:10}{:10}{:10}\n'.format('Q_CYS1', 'Q_CYS2', 'PDB_CYS1', 'PDB_CYS2'))
             for line in self.log['CYX']:
                 outfile.write(line + '\n')
-                
+            
+            outfile.write('--------------------------------------------------------------------')  
             outfile.write('\n')
-            outfile.write('The following is a mapping of residue numbers in Q and the input .pdb:\n')
+            outfile.write('The following is a mapping of residue numbers in Q and the input \n')
+            outfile.write('pdbfile "{}":\n'.format(self.prot))
             outfile.write('{:10}{:10}{:10}\n'.format('Q_RESN', 'PDB_IN', 'RESNAME'))
             for line in self.log['QRES_LIST']:
                 outfile.write(line + '\n')
                     
     def cleanup(self):
-        os.remove(self.prot[:-4] + '_tmp.pdb')
-        #os.remove('qprep.inp')
-        #os.remove('qprep.out')
-        #os.remove('top_p.pdb')
-        #os.remove('complexnotexcluded.pdb')
-        #os.remove('tmp.top')
+        if self.verbose == False:
+            os.remove(self.prot[:-4] + '_tmp.pdb')
+            os.remove('qprep.inp')
+            os.remove('qprep.out')
+            os.remove('top_p.pdb')
+            os.remove('complexnotexcluded.pdb')
+            os.remove('tmp.top')
             
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -318,11 +375,18 @@ if __name__ == "__main__":
                         help = "center of the sphere, can be residue number (RESN:$)," \
                         "atomnumber (ATN:$) or explicit coordinates (X:Y:Z)")
     
+    parser.add_argument('-V', '--verbose',
+                        dest = "verbose",
+                        default = False,
+                        action = 'store_true',
+                        help = "turn on if a more verbose output is wanted (for now mostly Q output)")
+    
     args = parser.parse_args()
     run = Run(prot = args.prot,
               sphereradius = args.sphereradius,
               spherecenter = args.spherecenter,
               water = args.water,
+              verbose = args.verbose,
               include = ('ATOM','HETATM')
              )
     
