@@ -23,7 +23,8 @@ Q_DIR = {'CSB':'/home/jespers/software/q_510/bin/',
         }
 BIN = os.path.join(ROOT_DIR, "bin")
 
-SCHROD_DIR = '/home/apps/schrodinger2017/'
+#SCHROD_DIR = '/home/apps/schrodinger2017/'
+SCHROD_DIR = '/opt/schrodinger/suites2017-3/'
 
 # Choose a path to the gromacs binaries.
 #GROMACS_PATH = "/opt/applications/gromacs/4.0.5/gnu/ib/bin/"

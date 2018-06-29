@@ -112,4 +112,57 @@ def AA(AA):
         AA = oneAA[AA]
     return(AA)
 
+def read_prm(prmfiles):
+    """
+    Takes a list of Q .prm files and merges them, first file is the referene .prm file
+    Returns a dicitonary of the merged .prm files
+    """    
+    block = 0
+    prm = {'[options]':[],
+            '[atom_types]:':[],
+            '[bonds]':[],
+            '[angles]':[],
+            '[torsions]':[],
+            '[impropers]':[]}
     
+    for filename in prmfiles:
+        with open(filename) as infile:
+            for line in infile:
+                if line == '[options]\n':
+                    block = 1
+                    continue                
+                elif line == '[atom_types]\n':
+                    block = 2
+                    continue
+                elif line == '[bonds]\n':
+                    block = 3
+                    continue
+                elif line == '[angles]\n':
+                    block = 4
+                    continue
+                elif line == '[torsions]\n':
+                    block = 5
+                    continue
+                if line == '[impropers]\n':
+                    block = 6
+                    continue
+
+                if block == 1:
+                    prm['[options]'].append(line)
+
+                if block == 2:
+                    prm['[atom_types]'].append(line)
+
+                elif block == 3:
+                    prm['[bonds]'].append(line)                
+
+                elif block == 4:
+                    prm['[angle]'].append(line)                
+
+                elif block == 5:
+                    prm['[torsions]'].append(line)                
+
+                elif block == 6:
+                    prm['[impropers]'].append(line)
+                
+    return prm

@@ -401,3 +401,6 @@ if __name__ == "__main__":
     run.write_pdb_out()                 # 09
     run.write_log()                     # 10
     run.cleanup()                       # 12
+    
+# TO DO, add sphere enter on the ligand (-c LIG), reading a ligand pdb file and takes
+# COG of the ligand as center

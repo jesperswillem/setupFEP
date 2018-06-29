@@ -16,11 +16,6 @@ class Run(object):
     ligands
     """
     def __init__(self, lig1, lig2, FF, system, cluster, sphereradius, cysbond, start, *args, **kwargs):
-        """
-        The init method is a kind of constructor, called when an instance
-        of the class is created. The method serves to initialize what you
-        want to do with the object.
-        """
         self.lig1 = lig1
         self.lig2 = lig2
         self.FF = FF
