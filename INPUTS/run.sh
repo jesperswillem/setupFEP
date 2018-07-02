@@ -14,7 +14,7 @@ MODULES
 
 ## define qdynp location
 QDYN
-fepfiles=(FEP1.fep)
+fepfiles=(FEPS)
 temperature=298
 run=10
 finalMDrestart=md_0000_1000.re

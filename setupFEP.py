@@ -640,6 +640,7 @@ class Run(object):
         run2_in = s.ROOT_DIR + '/INPUTS/run_0500-0000.sh'
         run2_out = writedir + '/run_0500-0000.sh'
         replacements = getattr(s, cluster)
+        replacements['FEPS']='FEP1.fep'
         run_threads = '{}'.format(int(replacements['NTASKS']))
         
         with open(run_file_in) as infile, open(run_file_out, 'w') as outfile:

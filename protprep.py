@@ -306,6 +306,8 @@ class Run(object):
                                                                    self.center[0],
                                                                    self.center[1],
                                                                    self.center[2]))
+            outfile.write('{:47}{:>21.1f}\n'.format('Sphere radius:',
+                                                    self.radius))            
             outfile.write('{:47}{:>21}\n'.format('Total charge in sphere:', 
                                                   self.log['TOTAL_CHARGE']))
             outfile.write('--------------------------------------------------------------------')  

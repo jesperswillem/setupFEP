@@ -3,6 +3,9 @@ import shlex
 from subprocess import check_output
 import os
 
+import functions as f
+import settings as s
+
 def pdb_parse_in(line, include=('ATOM','HETATM')):
     """
     Takes a pdb file line and parses it into a list, according to Atomic Coordinate Entry Format 
@@ -119,7 +122,7 @@ def read_prm(prmfiles):
     """    
     block = 0
     prm = {'[options]':[],
-            '[atom_types]:':[],
+            '[atom_types]':[],
             '[bonds]':[],
             '[angles]':[],
             '[torsions]':[],
@@ -157,7 +160,7 @@ def read_prm(prmfiles):
                     prm['[bonds]'].append(line)                
 
                 elif block == 4:
-                    prm['[angle]'].append(line)                
+                    prm['[angles]'].append(line)                
 
                 elif block == 5:
                     prm['[torsions]'].append(line)                
@@ -166,3 +169,61 @@ def read_prm(prmfiles):
                     prm['[impropers]'].append(line)
                 
     return prm
+
+def get_lambdas(windows, sampling):
+    windows = int(windows)
+    step = windows/2
+    lambdas = []
+    lmbda_1 = []
+    lmbda_2 = []
+    k_dic = {'sigmoidal':-1.1, 
+             'linear':1000,
+             'exponential':-1.1,
+             'reverse_exponential':1.1
+            }
+    k = k_dic[sampling]
+
+    if sampling == 'sigmoidal': 
+        for i in range(0, step + 1):
+            lmbda1 = '{:.3f}'.format(0.5 * (f.sigmoid(float(i)/float(step), k) + 1))
+            lmbda2 = '{:.3f}'.format(0.5 * (-f.sigmoid(float(i)/float(step), k) + 1))
+            lmbda_1.append(lmbda1)
+            lmbda_2.append(lmbda2)
+
+        lmbda_2 = lmbda_2[1:]
+
+        for i in reversed(lmbda_2):
+            lambdas.append(i)
+
+        for i in lmbda_1:
+            lambdas.append(i)
+
+    else:
+        for i in range(0, windows + 1):
+            lmbda = '{:.3f}'.format(f.sigmoid(float(i)/float(windows), k))
+            lambdas.append(lmbda)
+
+    lambdas = lambdas[::-1]
+    return lambdas   
+
+def write_submitfile(writedir, replacements):
+    submit_in = s.ROOT_DIR + '/INPUTS/FEP_submit.sh'
+    submit_out = writedir + ('/FEP_submit.sh')
+    with open(submit_in) as infile, open (submit_out, 'w') as outfile:
+        for line in infile:
+            line = replace(line, replacements)
+            outfile.write(line)
+
+    try:
+        st = os.stat(submit_out)
+        os.chmod(submit_out, st.st_mode | stat.S_IEXEC)
+
+    except:
+        print "WARNING: Could not change permission for " + submit_out
+
+def merge_two_dicts(x, y):
+    """Given two dicts, merge them into a new dict as a shallow copy."""
+    z = x.copy()
+    z.update(y)
+    return z
+
