@@ -1,15 +1,14 @@
-rl FF_LIB 
-rprm FF_PRM
-! TO DO Change if protein system is used
-rp PROTPDB 
+!Added libraries:
+rprm PRM 
+rp PDB 
 set solute_density 0.05794 
-! NOTE, this is now large for water system, change for protein system
-set solvent_pack 3.0
+! Solvent_pack is turned off 
+set solvent_pack 0.0
 boundary 1 CENTER SPHERE
 solvate CENTER SPHERE SOLVENT
 !addbond at1 at2 y
 maketop MKC_p 
-writetop tmp.top 
+writetop dualtop.top 
 wp top_p.pdb y 
 mask none 
 mask not excluded 

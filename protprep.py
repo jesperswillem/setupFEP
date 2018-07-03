@@ -196,26 +196,31 @@ class Run(object):
                 cys_list.append(f.euclidian_overlap(SG_1[1], SG_2[1], cys_bond))
             cys_mat.append(cys_list)
         
-        total = len(cys_mat[0]) -1
-        
-        for line in cys_mat:
-            k += 1
-            for j in range(i, total):
-                if cys_mat[i][j+1] == True and cys_mat[k][0] != cys_mat[j][0]:
-                    cyx.append(cys_mat[k][0])
-                    cyx.append(cys_mat[j][0])
-                    outline = '{:<10}{:<10}{:<10}{:<10}'.format(self.log['QRESN'][cys_mat[k][0]], 
-                                                                self.log['QRESN'][cys_mat[j][0]],
-                                                                cys_mat[k][0],
-                                                                cys_mat[j][0])
-                    self.log['CYX'].append(outline)
-            
-            i += 1
+        # Fix to better handling
+        try:
+            total = len(cys_mat[0]) -1
 
-        for key in self.PDB:
-            at = self.PDB[key]
-            if at[6] in cyx:
-                self.PDB[key][4] = 'CYX'
+            for line in cys_mat:
+                k += 1
+                for j in range(i, total):
+                    if cys_mat[i][j+1] == True and cys_mat[k][0] != cys_mat[j][0]:
+                        cyx.append(cys_mat[k][0])
+                        cyx.append(cys_mat[j][0])
+                        outline = '{:<10}{:<10}{:<10}{:<10}'.format(self.log['QRESN'][cys_mat[k][0]], 
+                                                                    self.log['QRESN'][cys_mat[j][0]],
+                                                                    cys_mat[k][0],
+                                                                    cys_mat[j][0])
+                        self.log['CYX'].append(outline)
+
+                i += 1
+
+            for key in self.PDB:
+                at = self.PDB[key]
+                if at[6] in cyx:
+                    self.PDB[key][4] = 'CYX'
+                    
+        except:
+            return None
                 
     def write_tmpPDB(self):
         with open(self.prot[:-4] + '_tmp.pdb', 'w') as outfile:

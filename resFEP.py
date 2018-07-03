@@ -1,6 +1,7 @@
 import argparse
 import re
 import os
+import shutil
 import sys
 import glob
 
@@ -60,14 +61,13 @@ class Run(object):
         self.CYX = []
         self.PDB = {}
         self.PDB2Q = {}
-        self.systemsize = 0
+        self.systemsize = 1
         self.system = system
         self.cluster = cluster
         self.FEPlist = []
         
         self.replacements = {'EQ_LAMBDA': '1.000 0.000',
                      'ATOM_START_LIG1':'1',
-                     'ATOM_END': '{}'.format(self.systemsize),
                      'WATER_RESTRAINT':'',
                      'TEMP_VAR':self.temperature,
                      'RUN_VAR':self.replicates,
@@ -83,8 +83,9 @@ class Run(object):
             FEPdir = FEPdir + '-aa'
             
         if not os.path.exists(FEPdir):
-            print 'FATAL: no FEP files found for the {} mutation in {} exiting now.'.format(mutation,
-                                                                                            FEPdir)
+            print 'FATAL: no FEP files found for the {} mutation' \
+                  'in {} exiting now.'.format(mutation,
+                                              FEPdir)
             sys.exit()
         
         else:
@@ -98,6 +99,16 @@ class Run(object):
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
             os.makedirs(self.directory + '/inputfiles')
+            
+        files = {self.directory + '/inputfiles/' + self.forcefield + '.lib': \
+                 s.FF_DIR + '/' + self.forcefield + '.lib',
+                }
+        
+        for filename in self.cofactor:
+            files[self.directory + '/inputfiles/' + filename + '.lib'] = filename + '.lib'
+        
+        for key in files:
+            shutil.copy(files[key], key)
     
     def read_input(self):
         block = 0
@@ -129,17 +140,28 @@ class Run(object):
                         self.PDB2Q[line[1]] = line[0]
 
     def readpdb(self):
-        with open('protein.pdb') as infile:
-            for line in infile:
-                if line.startswith(self.include):
-                    line = IO.pdb_parse_in(line)
-                    try:
-                        self.PDB[line[6]].append(line)
+        pdb_files = ['protein.pdb']
+        for line in self.cofactor:
+            pdb_files.append(line + '.pdb')
+        
+        for pdb_file in pdb_files:
+            with open(pdb_file) as infile:
+                for line in infile:
+                    if line.startswith(self.include):
+                        line = IO.pdb_parse_in(line)
+                        if pdb_file != 'protein.pdb':
+                            line[6] = resoffset + 1
+                            line[1] = self.systemsize
+                        try:
+                            self.PDB[line[6]].append(line)
+
+                        except:
+                            self.PDB[line[6]] = [line]
                         
-                    except:
-                        self.PDB[line[6]] = [line]
-                    
-                    self.systemsize += 1
+                        self.systemsize += 1
+                
+                resoffset = len(self.PDB)
+
                        
     def merge_prm(self):
         headers =['[options]', 
@@ -156,12 +178,92 @@ class Run(object):
                 prmfiles.append(filename + '.prm')
             
         prms = IO.read_prm(prmfiles)
+        prm_merged = self.directory + '/inputfiles/' + self.forcefield + '_merged.prm'
+        self.prm_merged = self.forcefield + '_merged.prm'
         
-        with open (self.forcefield + '_merged.prm', 'w') as outfile:
+        with open (prm_merged, 'w') as outfile:
             for key in headers:
                 outfile.write(key + '\n')
                 for line in prms[key]:
                     outfile.write(line)
+                    
+    def write_pdb(self):
+        PDBout = self.directory + '/inputfiles/complex.pdb'
+        self.PDBout = 'complex.pdb'
+        with open(PDBout, 'w') as outfile:
+            for key in self.PDB:
+                for line in self.PDB[key]:
+                    outline = IO.pdb_parse_out(line) + '\n'
+                    outfile.write(outline)
+                    
+    def select_waters(self):
+        src = 'water.pdb'
+        tgt = self.directory + '/inputfiles/water.pdb'
+        cofactor_coordinates = []
+        waters_remove = []
+        waters = {}
+        
+        for line in self.cofactor:
+            with open(line + '.pdb') as infile:
+                for line in infile:
+                    line = IO.pdb_parse_in(line)    
+                    cofactor_coordinates.append([line[8], line[9], line[10]])
+        
+        with open (src) as infile, open (tgt, 'w') as outfile:
+            for line in infile:
+                if line.split()[-1] == 'SPHERE':
+                    outfile.write(line)
+                    continue
+                    
+                else:
+                    line = IO.pdb_parse_in(line)    
+                    coord_wat = [line[8], line[9], line[10]]
+                    try:
+                        waters[line[6]].append(line)
+                    except:
+                        waters[line[6]] = [line]
+
+                    for coord_co in cofactor_coordinates:
+                        if f.euclidian_overlap(coord_wat, coord_co, 1.6) == True:
+                            waters_remove.append(line[6])
+            
+            for key in waters:
+                if key not in waters_remove:
+                    for water in waters[key]:
+                        outfile.write(IO.pdb_parse_out(water) + '\n')
+            
+    def write_qprep(self):
+        replacements = {'PRM':self.prm_merged,
+                        'PDB':self.PDBout,
+                        'CENTER':'{} {} {}'.format(*self.sphere),
+                        'SPHERE':self.radius,
+                        'SOLVENT':'4 water.pdb'
+                       }
+        src = s.INPUT_DIR + '/qprep_resFEP.inp'
+        self.qprep = self.directory + '/inputfiles/qprep.inp'
+        libraries = [self.forcefield + '.lib']
+        if self.cofactor != None:
+            for filename in self.cofactor:
+                libraries.append(filename + '.lib')
+                
+        with open(src) as infile, open(self.qprep, 'w') as outfile:
+            for line in infile:
+                line = IO.replace(line, replacements)
+                if line.split()[0] == '!Added':
+                    for libraryfile in libraries:
+                        outfile.write('rl ' + libraryfile + '\n')
+                    continue
+                        
+                if line.split()[0] == '!addbond':
+                    for CYX in self.CYX:
+                        outline = 'addbond {}:SG {}:SG y\n'.format(*CYX)
+                        outfile.write(outline)
+                    continue
+                        
+                outfile.write(line)
+        
+    def run_qprep(self):
+        return None
                     
     def get_lambdas(self):
         self.lambdas = IO.get_lambdas(self.windows, self.sampling)
@@ -169,8 +271,10 @@ class Run(object):
     def write_EQ(self):
         for line in self.PDB[1]:
             if line[2] == 'CA' and self.system == 'water' or self.system == 'vacuum':
-                self.replacements['WATER_RESTRAINT'] = '{} {} 1.0 0 0'.format(line[1], line[1])
-                
+                self.replacements['WATER_RESTRAINT'] = '{} {} 1.0 0 0'.format(line[1], 
+                                                                              line[1])
+        self.replacements['ATOM_END'] = '{}'.format(self.systemsize)
+        
         for EQ_file in glob.glob(s.INPUT_DIR + '/eq*.inp'):
             src = EQ_file
             EQ_file = EQ_file.split('/')
@@ -230,17 +334,19 @@ class Run(object):
                 if line.strip() == '#EQ_FILES':
                     for line in EQ_files:
                         file_base = line.split('/')[-1][:-4]
-                        outline = 'time mpirun -np {} $qdyn {}.inp > {}.log\n'.format(ntasks,
-                                                                                      file_base,
-                                                                                      file_base)
+                        outline = 'time mpirun -np {} $qdyn {}.inp' \
+                                   '> {}.log\n'.format(ntasks,
+                                                       file_base,
+                                                       file_base)
                         outfile.write(outline)
                         
                 if line.strip() == '#RUN_FILES':
                     for line in MD_files:
                         file_base = line.split('/')[-1][:-4]
-                        outline = 'time mpirun -np {} $qdyn {}.inp > {}.log\n'.format(ntasks,
-                                                                                      file_base,
-                                                                                      file_base)
+                        outline = 'time mpirun -np {} $qdyn {}.inp'  \
+                                  '> {}.log\n'.format(ntasks,
+                                                      file_base,
+                                                      file_base)
                         outfile.write(outline)
                         
     def write_submitfile(self):
@@ -398,6 +504,10 @@ if __name__ == "__main__":
     run.readpdb()
     run.read_input()
     run.merge_prm()
+    run.write_pdb()
+    run.select_waters()
+    run.write_qprep()
+    run.run_qprep()
     run.get_lambdas()
     run.write_EQ()
     run.write_MD()

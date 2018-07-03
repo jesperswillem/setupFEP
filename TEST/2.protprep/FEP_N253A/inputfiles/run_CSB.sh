@@ -55,32 +55,32 @@ sed -i s/FEP_VAR/"$fepfile"/ *.inp
 if [ $index -lt 1 ]; then
 #time mpirun -np 16 $qdyn eq1.inp > eq1.log
 #EQ_FILES
-time mpirun -np 16 $qdyn eq1.inp > eq1.log
-time mpirun -np 16 $qdyn eq2.inp > eq2.log
-time mpirun -np 16 $qdyn eq3.inp > eq3.log
-time mpirun -np 16 $qdyn eq4.inp > eq4.log
-time mpirun -np 16 $qdyn eq5.inp > eq5.log
+time mpirun -np 16 $qdyn eq1.inp> eq1.log
+time mpirun -np 16 $qdyn eq2.inp> eq2.log
+time mpirun -np 16 $qdyn eq3.inp> eq3.log
+time mpirun -np 16 $qdyn eq4.inp> eq4.log
+time mpirun -np 16 $qdyn eq5.inp> eq5.log
 fi
 #RUN_FILES
-time mpirun -np 16 $qdyn md_1000_0000.inp > md_1000_0000.log
-time mpirun -np 16 $qdyn md_0950_0050.inp > md_0950_0050.log
-time mpirun -np 16 $qdyn md_0900_0100.inp > md_0900_0100.log
-time mpirun -np 16 $qdyn md_0850_0150.inp > md_0850_0150.log
-time mpirun -np 16 $qdyn md_0800_0200.inp > md_0800_0200.log
-time mpirun -np 16 $qdyn md_0750_0250.inp > md_0750_0250.log
-time mpirun -np 16 $qdyn md_0700_0300.inp > md_0700_0300.log
-time mpirun -np 16 $qdyn md_0650_0350.inp > md_0650_0350.log
-time mpirun -np 16 $qdyn md_0600_0400.inp > md_0600_0400.log
-time mpirun -np 16 $qdyn md_0550_0450.inp > md_0550_0450.log
-time mpirun -np 16 $qdyn md_0500_0500.inp > md_0500_0500.log
-time mpirun -np 16 $qdyn md_0450_0550.inp > md_0450_0550.log
-time mpirun -np 16 $qdyn md_0400_0600.inp > md_0400_0600.log
-time mpirun -np 16 $qdyn md_0350_0650.inp > md_0350_0650.log
-time mpirun -np 16 $qdyn md_0300_0700.inp > md_0300_0700.log
-time mpirun -np 16 $qdyn md_0250_0750.inp > md_0250_0750.log
-time mpirun -np 16 $qdyn md_0200_0800.inp > md_0200_0800.log
-time mpirun -np 16 $qdyn md_0150_0850.inp > md_0150_0850.log
-time mpirun -np 16 $qdyn md_0100_0900.inp > md_0100_0900.log
-time mpirun -np 16 $qdyn md_0050_0950.inp > md_0050_0950.log
-time mpirun -np 16 $qdyn md_0000_1000.inp > md_0000_1000.log
+time mpirun -np 16 $qdyn md_1000_0000.inp> md_1000_0000.log
+time mpirun -np 16 $qdyn md_0950_0050.inp> md_0950_0050.log
+time mpirun -np 16 $qdyn md_0900_0100.inp> md_0900_0100.log
+time mpirun -np 16 $qdyn md_0850_0150.inp> md_0850_0150.log
+time mpirun -np 16 $qdyn md_0800_0200.inp> md_0800_0200.log
+time mpirun -np 16 $qdyn md_0750_0250.inp> md_0750_0250.log
+time mpirun -np 16 $qdyn md_0700_0300.inp> md_0700_0300.log
+time mpirun -np 16 $qdyn md_0650_0350.inp> md_0650_0350.log
+time mpirun -np 16 $qdyn md_0600_0400.inp> md_0600_0400.log
+time mpirun -np 16 $qdyn md_0550_0450.inp> md_0550_0450.log
+time mpirun -np 16 $qdyn md_0500_0500.inp> md_0500_0500.log
+time mpirun -np 16 $qdyn md_0450_0550.inp> md_0450_0550.log
+time mpirun -np 16 $qdyn md_0400_0600.inp> md_0400_0600.log
+time mpirun -np 16 $qdyn md_0350_0650.inp> md_0350_0650.log
+time mpirun -np 16 $qdyn md_0300_0700.inp> md_0300_0700.log
+time mpirun -np 16 $qdyn md_0250_0750.inp> md_0250_0750.log
+time mpirun -np 16 $qdyn md_0200_0800.inp> md_0200_0800.log
+time mpirun -np 16 $qdyn md_0150_0850.inp> md_0150_0850.log
+time mpirun -np 16 $qdyn md_0100_0900.inp> md_0100_0900.log
+time mpirun -np 16 $qdyn md_0050_0950.inp> md_0050_0950.log
+time mpirun -np 16 $qdyn md_0000_1000.inp> md_0000_1000.log
 done
