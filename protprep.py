@@ -75,8 +75,11 @@ class Run(object):
     def readpdb(self):
         i = 0
         with open(self.prot) as infile:
-            header = IO.pdb_parse_in(infile.readline())
-            RES_ref = header[6] - 1
+            for line in infile:
+                if line.startswith(self.include):
+                    header = IO.pdb_parse_in(line)
+                    RES_ref = header[6] - 1
+                    break
             
         with open(self.prot) as infile:
             for line in infile:
