@@ -13,7 +13,8 @@ class Run(object):
     """
     Prepare a protein for usage in spherical boundary conditions.
     """
-    def __init__(self, prot, sphereradius, spherecenter, include, water, verbose, *args, **kwargs):
+    def __init__(self, prot, sphereradius, spherecenter, include, water, 
+                 preplocation, verbose, *args, **kwargs):
         self.prot = prot
         self.radius = float(sphereradius)
         self.center = spherecenter
@@ -21,6 +22,7 @@ class Run(object):
         self.water = water
         self.verbose = verbose
         self.PDB = {}
+        self.preplocation = preplocation
         self.log = {'INPUT':'protPREP.py -p {} -r {} -c {} -w={} -V={}'.format(prot, 
                                                                                sphereradius, 
                                                                                spherecenter, 
@@ -252,7 +254,7 @@ class Run(object):
                         outfile.write(outline)            
         
     def run_qprep(self):
-        qprep = s.Q_DIR['CSB'] + 'qprep'
+        qprep = s.Q_DIR[self.preplocation] + 'qprep'
         options = ' < qprep.inp > qprep.out'
         # Somehow Q is very annoying with this < > input style so had to implement
         # another function that just calls os.system instead of using the preferred
@@ -391,12 +393,18 @@ if __name__ == "__main__":
                         action = 'store_true',
                         help = "turn on if a more verbose output is wanted (for now mostly Q output)")
     
+    parser.add_argument('-P', '--preplocation',
+                        dest = "preplocation",
+                        default = 'LOCAL',
+                        help = "define this variable if you are setting up your system elsewhere")
+    
     args = parser.parse_args()
     run = Run(prot = args.prot,
               sphereradius = args.sphereradius,
               spherecenter = args.spherecenter,
               water = args.water,
               verbose = args.verbose,
+              preplocation = args.preplocation,
               include = ('ATOM','HETATM')
              )
     

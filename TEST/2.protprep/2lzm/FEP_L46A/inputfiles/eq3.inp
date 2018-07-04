@@ -1,10 +1,8 @@
 [MD]
 steps                     10000
-stepsize                  0.1
-temperature               1
-bath_coupling             0.2
-random_seed               SEED_VAR
-initial_temperature       1
+stepsize                  1.0
+temperature               150
+bath_coupling             1.0
 shake_solvent             on
 shake_hydrogens           off
 shake_solute              off
@@ -33,8 +31,9 @@ non_bond                  25
 
 [files]
 topology                  dualtop.top
-trajectory                eq1.dcd
-final                     eq1.re
+trajectory                eq3.dcd
+restart                   eq2.re
+final                     eq3.re
 fep                       FEP_VAR
 
 [trajectory_atoms]
@@ -44,6 +43,6 @@ not excluded
 1.000 0.000
 
 [sequence_restraints]
-1 6182 10.0 0  0
+1 2792  5.0 0  0
 
 [distance_restraints]

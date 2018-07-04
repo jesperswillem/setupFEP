@@ -14,7 +14,8 @@ class Run(object):
     Setup residue FEPs using either a single or dual topology approach.
     """
     def __init__(self, cofactor, mutation, include, forcefield, windows,
-                 sampling, system, cluster, temperature, replicates, *args, **kwargs):
+                 sampling, system, cluster, temperature, replicates, 
+                 preplocation, *args, **kwargs):
         
         self.cofactor = [cofactor]
         # Check whether all required files are there:
@@ -57,6 +58,7 @@ class Run(object):
         self.mutation = re.split('(\d+)', mutation)
         self.include = include
         self.forcefield = forcefield
+        self.preplocation = preplocation
         self.lambdas = []
         self.CYX = []
         self.PDB = {}
@@ -266,7 +268,14 @@ class Run(object):
                 outfile.write(line)
         
     def run_qprep(self):
-        return None
+        os.chdir(self.directory + '/inputfiles/')
+        qprep = s.Q_DIR[self.preplocation] + 'qprep'
+        options = ' < qprep.inp > qprep.out'
+        # Somehow Q is very annoying with this < > input style so had to implement
+        # another function that just calls os.system instead of using the preferred
+        # subprocess module....
+        IO.run_command(qprep, options, string = True)
+        os.chdir('../../')
                     
     def get_lambdas(self):
         self.lambdas = IO.get_lambdas(self.windows, self.sampling)
@@ -392,6 +401,7 @@ class Run(object):
                     if block == 1:
                         if line.strip() != '[atoms]':
                             line = line.split()
+                            line2 = []
                             if len(line) > 1:
                                 atnr = RES_dic[line[3]][1]
                                 atom_map[line[0]] = atnr
@@ -483,7 +493,12 @@ if __name__ == "__main__":
     parser.add_argument('-C', '--cluster',
                         dest = "cluster",
                         required = True,
-                        help = "Cluster to use.")   
+                        help = "Cluster to use.")
+    
+    parser.add_argument('-P', '--preplocation',
+                    dest = "preplocation",
+                    default = 'LOCAL',
+                    help = "define this variable if you are setting up your system elsewhere")
 
     args = parser.parse_args()
     run = Run(mutation = args.mutation,
@@ -495,6 +510,7 @@ if __name__ == "__main__":
               cluster = args.cluster,
               temperature = args.temperature,
               replicates = args.replicates,
+              preplocation = args.preplocation,
               include = ('ATOM','HETATM')
              )
     

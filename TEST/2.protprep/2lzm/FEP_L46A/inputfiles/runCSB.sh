@@ -14,7 +14,7 @@ module load openmpi-x86_64
 
 ## define qdynp location
 qdyn=/home/apps/q-5.06/qdynp
-fepfiles=(FEP1.fep FEP2.fep FEP3.fep FEP4.fep FEP5.fep)
+fepfiles=(FEP1.fep FEP2.fep FEP3.fep FEP4.fep FEP5.fep FEP6.fep)
 temperature=298
 run=10
 finalMDrestart=md_0000_1000.re
@@ -55,11 +55,11 @@ sed -i s/FEP_VAR/"$fepfile"/ *.inp
 if [ $index -lt 1 ]; then
 #time mpirun -np 16 $qdyn eq1.inp > eq1.log
 #EQ_FILES
-time mpirun -np 16 $qdyn eq1.inp> eq1.log
-time mpirun -np 16 $qdyn eq2.inp> eq2.log
-time mpirun -np 16 $qdyn eq3.inp> eq3.log
-time mpirun -np 16 $qdyn eq4.inp> eq4.log
-time mpirun -np 16 $qdyn eq5.inp> eq5.log
+time mpirun -np 16 $qdyn eq1.inp > eq1.log
+time mpirun -np 16 $qdyn eq2.inp > eq2.log
+time mpirun -np 16 $qdyn eq3.inp > eq3.log
+time mpirun -np 16 $qdyn eq4.inp > eq4.log
+time mpirun -np 16 $qdyn eq5.inp > eq5.log
 fi
 #RUN_FILES
 time mpirun -np 16 $qdyn md_1000_0000.inp> md_1000_0000.log

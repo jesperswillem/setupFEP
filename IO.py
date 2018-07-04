@@ -19,7 +19,7 @@ def pdb_parse_in(line, include=('ATOM','HETATM')):
         at_entry.append(int(line[6:11]))        #  1 ATOM serial number
         at_entry.append(line[12:16].strip())    #  2 ATOM name
         at_entry.append(line[16:17])            #  3 Alternate location indicator
-        at_entry.append(line[17:20])            #  4 Residue name
+        at_entry.append(line[17:21])            #  4 Residue name
         at_entry.append(line[21:22])            #  5 Chain identifier
         at_entry.append(int(line[22:26]))       #  6 Residue sequence number
         at_entry.append(line[26:27])            #  7 Code for insertion of residue
@@ -60,8 +60,10 @@ def pdb_parse_out(line):
     """
     Takes a list and parses it into a pdb writeable line
     """
+    line[4] = line[4].strip() # Four letter amino acid code overides blank space
     line = '{:6s}{:5d} {:<4s}{:1s}{:4s}{:1s}{:4d}{:1s}   '\
            '{:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}'.format(*line)
+
     return line
 
 def replace(string, replacements):

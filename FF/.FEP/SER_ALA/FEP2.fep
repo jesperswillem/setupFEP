@@ -5,11 +5,11 @@ states 2
 softcore_use_max_potential on
 
 [atoms]
-1 1  !CB 
-2 2  !HB2
-3 3  !HB3 
-4 4  !OG  blir HC
-5 5  !HG  bort		
+1 1  ! CB 
+2 2  ! HB2
+3 3  ! HB3 
+4 4  ! OG  blir HC
+5 5  ! HG  bort		
 	     
 [change_charges]
 1   0 		0

@@ -1,0 +1,15 @@
+rl OPLS2015.lib
+rprm OPLS2015_merged.prm 
+rp complex.pdb 
+set solute_density 0.05794 
+! Solvent_pack is turned off 
+set solvent_pack 0.0
+boundary 1 37.572 21.556 26.123 25.0
+solvate 37.572 21.556 26.123 25.0 4 water.pdb
+maketop MKC_p 
+writetop dualtop.top 
+wp top_p.pdb y 
+mask none 
+mask not excluded 
+wp complexnotexcluded.pdb y 
+q 
