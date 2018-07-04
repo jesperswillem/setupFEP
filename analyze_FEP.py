@@ -6,7 +6,9 @@ def get_results():
     results = {}
     residues = []
         
-    for filename in glob.glob('1*/*/FEP_*/FEP*/*/*'):
+    for filename in glob.glob('2_furyl_50/*/FEP_*/FEP*/*/*'):
+        if filename == '2_furyl_50/2.water/FEP_SYAF014-18a/FEP1/298/1':
+            continue
         line = filename.split('/')
         run = line[0]
         FEP = line[1]
@@ -99,7 +101,7 @@ def calc_sum_error(data):
     #return mean, sem
 
 def calc_ddG(raw_data):
-    with open('results.txt', 'w') as outfile:
+    with open('/home/jespers/results.txt', 'w') as outfile:
         outfile.write('FEP          Zwanzig     error    OS    error    BAR      error\n')
         dG = {}
         for name in raw_data:

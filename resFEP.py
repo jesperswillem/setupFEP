@@ -19,7 +19,7 @@ class Run(object):
         self.cofactor = [cofactor]
         # Check whether all required files are there:
         required = ['protein.pdb', 'water.pdb', 'protPREP.log']
-        if self.cofactor != None:
+        if self.cofactor[0] != None:
             extension = ['.pdb', '.lib', '.prm']
             for filename in self.cofactor:
                 for line in extension:
@@ -104,8 +104,9 @@ class Run(object):
                  s.FF_DIR + '/' + self.forcefield + '.lib',
                 }
         
-        for filename in self.cofactor:
-            files[self.directory + '/inputfiles/' + filename + '.lib'] = filename + '.lib'
+        if self.cofactor[0] != None:
+            for filename in self.cofactor:
+                files[self.directory + '/inputfiles/' + filename + '.lib'] = filename + '.lib'
         
         for key in files:
             shutil.copy(files[key], key)
@@ -141,8 +142,9 @@ class Run(object):
 
     def readpdb(self):
         pdb_files = ['protein.pdb']
-        for line in self.cofactor:
-            pdb_files.append(line + '.pdb')
+        if self.cofactor[0] != None:
+            for line in self.cofactor:
+                pdb_files.append(line + '.pdb')
         
         for pdb_file in pdb_files:
             with open(pdb_file) as infile:
@@ -173,7 +175,7 @@ class Run(object):
                  ]
         
         prmfiles = [s.FF_DIR + '/' + self.forcefield + '.prm']
-        if self.cofactor != None:
+        if self.cofactor[0] != None:
             for filename in self.cofactor:
                 prmfiles.append(filename + '.prm')
             
@@ -203,11 +205,12 @@ class Run(object):
         waters_remove = []
         waters = {}
         
-        for line in self.cofactor:
-            with open(line + '.pdb') as infile:
-                for line in infile:
-                    line = IO.pdb_parse_in(line)    
-                    cofactor_coordinates.append([line[8], line[9], line[10]])
+        if self.cofactor[0] != None:
+            for line in self.cofactor:
+                with open(line + '.pdb') as infile:
+                    for line in infile:
+                        line = IO.pdb_parse_in(line)    
+                        cofactor_coordinates.append([line[8], line[9], line[10]])
         
         with open (src) as infile, open (tgt, 'w') as outfile:
             for line in infile:
@@ -242,7 +245,7 @@ class Run(object):
         src = s.INPUT_DIR + '/qprep_resFEP.inp'
         self.qprep = self.directory + '/inputfiles/qprep.inp'
         libraries = [self.forcefield + '.lib']
-        if self.cofactor != None:
+        if self.cofactor[0] != None:
             for filename in self.cofactor:
                 libraries.append(filename + '.lib')
                 
@@ -314,7 +317,7 @@ class Run(object):
     def write_runfile(self):
         ntasks = getattr(s, self.cluster)['NTASKS']
         src = s.INPUT_DIR + '/run.sh'
-        tgt = self.directory + '/inputfiles/run_' + self.cluster + '.sh'
+        tgt = self.directory + '/inputfiles/run' + self.cluster + '.sh'
         EQ_files = sorted(glob.glob(self.directory + '/inputfiles/eq*.inp'))
         MD_files = reversed(sorted(glob.glob(self.directory + '/inputfiles/md*.inp')))
         replacements = IO.merge_two_dicts(self.replacements, getattr(s, self.cluster))
@@ -335,7 +338,7 @@ class Run(object):
                     for line in EQ_files:
                         file_base = line.split('/')[-1][:-4]
                         outline = 'time mpirun -np {} $qdyn {}.inp' \
-                                   '> {}.log\n'.format(ntasks,
+                                   ' > {}.log\n'.format(ntasks,
                                                        file_base,
                                                        file_base)
                         outfile.write(outline)
@@ -357,12 +360,12 @@ class Run(object):
         RES_list = self.PDB[int(self.PDB2Q[self.mutation[1]])]
         RES_dic = {}
         block = 0
-        empty = ['[change_charges]\n', 
-                 '[FEP]\n',
-                 '[atom_types]\n',
-                 '[change_atoms]\n',
-                 '[softcore]\n',
-                 '[bond_types]\n'                
+        empty = ['[change_charges]', 
+                 '[FEP]',
+                 '[atom_types]',
+                 '[change_atoms]',
+                 '[softcore]',
+                 '[bond_types]'                
                 ]
         atom_map = {}
         for line in RES_list:
@@ -372,20 +375,22 @@ class Run(object):
             tgt = self.directory + '/inputfiles/' + src.split('/')[-1]
             with open (src) as infile, open (tgt, 'w') as outfile:
                 for line in infile:
-                    if line == '[atoms]\n':
+                    if line.strip() == '[atoms]':
+                        outfile.write(line)
                         block = 1
                         
-                    if line == '[change_bonds]\n':
+                    if line.strip() == '[change_bonds]':
+                        outfile.write(line)
                         block = 2
                         
-                    if line in empty:
+                    if line.strip() in empty:
                         block = 0
                     
                     if block == 0:
                         outfile.write(line)
                         
                     if block == 1:
-                        if line != '[atoms]\n':
+                        if line.strip() != '[atoms]':
                             line = line.split()
                             if len(line) > 1:
                                 atnr = RES_dic[line[3]][1]
@@ -405,12 +410,9 @@ class Run(object):
                                 outfile.write(outline)
                             else:
                                 outfile.write('\n')
-
-                        else:
-                            outfile.write(line)
                             
                     if block == 2:
-                        if line != '[change_bonds]\n':
+                        if line.strip != '[change_bonds]':
                             line = line.split()
                             if len(line) > 1:
                                 at_1 = atom_map[line[0]]
@@ -423,9 +425,6 @@ class Run(object):
                                 outfile.write(outline)
                             else:
                                 outfile.write('\n')
-                
-                        else:
-                            outfile.write(line)
                             
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

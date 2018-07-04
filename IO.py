@@ -2,6 +2,7 @@ import re
 import shlex
 from subprocess import check_output
 import os
+import stat
 
 import functions as f
 import settings as s
