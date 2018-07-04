@@ -7,6 +7,11 @@ import stat
 import functions as f
 import settings as s
 
+## Some useful objects TO DO add GLH etc.
+charged_res = {'HIS': {'HD1' : 'HID',
+                       'HE2' : 'HIE'}       
+              }    
+
 def pdb_parse_in(line, include=('ATOM','HETATM')):
     """
     Takes a pdb file line and parses it into a list, according to Atomic Coordinate Entry Format 
@@ -19,7 +24,7 @@ def pdb_parse_in(line, include=('ATOM','HETATM')):
         at_entry.append(int(line[6:11]))        #  1 ATOM serial number
         at_entry.append(line[12:16].strip())    #  2 ATOM name
         at_entry.append(line[16:17])            #  3 Alternate location indicator
-        at_entry.append(line[17:21])            #  4 Residue name
+        at_entry.append(line[17:21].strip())    #  4 Residue name
         at_entry.append(line[21:22])            #  5 Chain identifier
         at_entry.append(int(line[22:26]))       #  6 Residue sequence number
         at_entry.append(line[26:27])            #  7 Code for insertion of residue
@@ -60,7 +65,6 @@ def pdb_parse_out(line):
     """
     Takes a list and parses it into a pdb writeable line
     """
-    line[4] = line[4].strip() # Four letter amino acid code overides blank space
     line = '{:6s}{:5d} {:<4s}{:1s}{:4s}{:1s}{:4d}{:1s}   '\
            '{:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}'.format(*line)
 
@@ -96,7 +100,8 @@ def AA(AA):
                'THR': 'T', 'PHE': 'F', 'ASN': 'N', 'GLY': 'G', 'HID': 'H', 
                'HIP': 'H', 'HIE': 'H', 'HIS': 'H', 'LEU': 'L', 'ARN': 'R', 
                'ARG': 'R', 'TRP': 'W', 'ALA': 'A', 'VAL': 'V', 'GLH': 'E', 
-               'GLU': 'E', 'TYR': 'Y', 'MET': 'M',}
+               'GLU': 'E', 'TYR': 'Y', 'MET': 'M'
+              }
     
     fourAA = { 'CCYS': 'C', 'CASP': 'D', 'CASH': 'H', 'CSER': 'S', 
                'CGLN': 'Q', 'CLYN': 'K', 'CLYS': 'K', 'CILE': 'I', 
@@ -104,9 +109,15 @@ def AA(AA):
                'CGLY': 'G', 'CHIE': 'H', 'CHID': 'H', 'CHIP': 'H', 
                'CLEU': 'L', 'CARG': 'R', 'CARN': 'R', 'CTRP': 'W', 
                'CALA': 'A', 'CVAL': 'V', 'CGLU': 'E', 'CGLH': 'E',
-               'CTYR': 'Y', 'CMET': 'M'}
+               'CTYR': 'Y', 'CMET': 'M'
+             }
     
-    oneAA = {v: k for k, v in threeAA.iteritems()}
+    oneAA = {  'C' : 'CYS', 'D' : 'ASP', 'S' : 'SER', 'Q' : 'GLN',
+               'K' : 'LYS', 'I' : 'ILE', 'P' : 'PRO', 'T' : 'THR', 
+               'F' : 'PHE', 'N' : 'ASN', 'G' : 'GLY', 'H' : 'HID',
+               'L' : 'LEU', 'R' : 'ARG', 'W' : 'TRP', 'A' : 'ALA',
+               'V' : 'VAL', 'E' : 'GLU', 'Y' : 'TYR', 'M' : 'MET'
+            }
     
     if len(AA) == 4:
         AA = fourAA[AA]

@@ -14,7 +14,7 @@ class Run(object):
     Prepare a protein for usage in spherical boundary conditions.
     """
     def __init__(self, prot, sphereradius, spherecenter, include, water, 
-                 preplocation, verbose, *args, **kwargs):
+                 preplocation, maestro, verbose, *args, **kwargs):
         self.prot = prot
         self.radius = float(sphereradius)
         self.center = spherecenter
@@ -23,6 +23,12 @@ class Run(object):
         self.verbose = verbose
         self.PDB = {}
         self.preplocation = preplocation
+        self.maestro = maestro
+        
+        if self.maestro == True:
+            # create dictionary to store the maestro charges
+            self.maestro_charges = {}
+            
         self.log = {'INPUT':'protPREP.py -p {} -r {} -c {} -w={} -V={}'.format(prot, 
                                                                                sphereradius, 
                                                                                spherecenter, 
@@ -74,20 +80,50 @@ class Run(object):
                         
         self.log['CENTER'] = '{} {} {}'.format(*self.center)
     
+    def prepwizard_parse(self):
+        if self.maestro == False:
+            return None
+        
+        elif self.maestro == True:
+            with open(self.prot) as infile, \
+                 open(self.prot[:-4] + '_noH.pdb', 'w') as outfile:
+                for line in infile:
+                    if line.startswith(self.include):
+                        line = IO.pdb_parse_in(line)
+                        if line[2][0] != 'H':
+                            outline = IO.pdb_parse_out(line)
+                            outfile.write(outline  + '\n')
+                        
+                        # Get the charges from the hydrogen connections
+                        if line[4] in IO.charged_res:
+                            if line[2] in IO.charged_res[line[4]]:
+                                if line[6] in self.maestro_charges:
+                                    self.maestro_charges[line[6]] = 'HIP'
+                                else:
+                                    self.maestro_charges[line[6]] = IO.charged_res[line[4]][line[2]]
+
+    
     def readpdb(self):
         i = 0
-        with open(self.prot) as infile:
+        if self.maestro != True:
+            pdbfile = self.prot
+            
+        else:
+            pdbfile = self.prot[:-4] + '_noH.pdb'
+        with open(pdbfile) as infile:
             for line in infile:
                 if line.startswith(self.include):
                     header = IO.pdb_parse_in(line)
                     RES_ref = header[6] - 1
                     break
             
-        with open(self.prot) as infile:
+        with open(pdbfile) as infile:
             for line in infile:
                 if line.startswith(self.include):
                     line = IO.pdb_parse_in(line)
                     RES = line[6]
+                    if line[6] in self.maestro_charges:
+                        line[4] = self.maestro_charges[line[6]]
                     self.PDB[line[1]] = line
                     if RES != RES_ref:
                         RES_ref = RES
@@ -111,7 +147,6 @@ class Run(object):
         coord1 = self.center
         decharge = []
         # Distance for decharging residues in boundary
-        # TO DO, remove charges within salt bridge pair in boundary(?)
         rest_bound = float(self.radius) - 3.0
         for key in self.PDB:
             at = self.PDB[key]
@@ -312,7 +347,7 @@ class Run(object):
                                                   self.log['TIME']))
             outfile.write('{:47}{:>21}\n'.format('Inputfile:', 
                                                   self.prot))
-            outfile.write('{:47}{:>7.3f}{:>7.3f}{:>7.3f}\n'.format('Sphere center:',
+            outfile.write('{:41}{:>9.3f}{:>9.3f}{:>9.3f}\n'.format('Sphere center:',
                                                                    self.center[0],
                                                                    self.center[1],
                                                                    self.center[2]))
@@ -350,6 +385,7 @@ class Run(object):
     def cleanup(self):
         if self.verbose == False:
             os.remove(self.prot[:-4] + '_tmp.pdb')
+            os.remove(self.prot[:-4] + '_noH.pdb')
             os.remove('qprep.inp')
             os.remove('qprep.out')
             os.remove('top_p.pdb')
@@ -398,6 +434,12 @@ if __name__ == "__main__":
                         default = 'LOCAL',
                         help = "define this variable if you are setting up your system elsewhere")
     
+    parser.add_argument('-m', '--Maestro',
+                        dest = "maestro",
+                        default = True,
+                        action = 'store_false',
+                        help = "Use this flag if the input .pdb is not coming from maestro")
+    
     args = parser.parse_args()
     run = Run(prot = args.prot,
               sphereradius = args.sphereradius,
@@ -405,9 +447,11 @@ if __name__ == "__main__":
               water = args.water,
               verbose = args.verbose,
               preplocation = args.preplocation,
+              maestro = args.maestro,
               include = ('ATOM','HETATM')
              )
     
+    run.prepwizard_parse()              # 00
     run.readpdb()                       # 01
     run.get_center_coordinates()        # 02
     run.decharge()                      # 03

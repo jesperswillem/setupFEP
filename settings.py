@@ -52,10 +52,10 @@ KEBNE = {'NODES'      : '1',
         }
 
 STALLO = {'NODES'      : '1',
-         'NTASKS'     : '28',
+         'NTASKS'     : '20',
          'TIME'       : '0-04:00:00',  # d-hh:mm:ss
-         'MODULES'    : 'module load gompi/2017b\n', # Add a \n for every added module
-         'QDYN'       : 'qdyn=/home/w/wije/pfs/software/Q5/bin/qdyn5p', #fix qdyn= !!!!!
+         'MODULES'    : 'module load impi/2018.1.163-iccifort-2018.1.163-GCC-6.4.0-2.28\n', # Add a \n for every added module
+         'QDYN'       : 'qdyn=/home/jespersw/software/Q6/bin/qdynp', #fix qdyn= !!!!!
          'QPREP'      : '/home/apps/q-5.06/qprep', # NOTE: change to where you are setting up, not where you are running!
-         'ACCOUNT'    : 'SNIC2017-1-549'
+         'ACCOUNT'    : 'nn2948k'
         }

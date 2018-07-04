@@ -401,8 +401,7 @@ class Run(object):
                     if block == 1:
                         if line.strip() != '[atoms]':
                             line = line.split()
-                            line2 = []
-                            if len(line) > 1:
+                            if len(line) > 1 and line[0] != '!charge':
                                 atnr = RES_dic[line[3]][1]
                                 atom_map[line[0]] = atnr
 
@@ -424,7 +423,7 @@ class Run(object):
                     if block == 2:
                         if line.strip != '[change_bonds]':
                             line = line.split()
-                            if len(line) > 1:
+                            if len(line) > 1 and line[0] != '!charge':
                                 at_1 = atom_map[line[0]]
                                 at_2 = atom_map[line[1]]
                                 outline = '{:<7d}{:<7d}{:5s}{:5s}\n'.format(at_1,
