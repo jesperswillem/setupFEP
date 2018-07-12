@@ -9,6 +9,7 @@ from subprocess import check_output
 
 import functions as f
 import settings as s
+import IO
 
 class Run(object):
     """
@@ -338,17 +339,13 @@ class Run(object):
                     resnr = int(line[22:26])
                     # Temporary fix NaN error of overlapping heavy atom in Q, add offset
                     atnr += 1
-                    atom1 = line.split()
-                    atom1[1] = '{:>5}'.format(int(atom1[1]) + self.atomoffset)
-                    atom1[4] = '{:>6}'.format(int(atom1[4]) + self.residueoffset)
-                    atom1[5] = float(atom1[5]) + 0.001
-                    atom1[6] = float(atom1[6]) + 0.001
-                    atom1[7] = float(atom1[7]) + 0.001
-                    atom1[8] = float(atom1[8])
-                    atom1[9] = float(atom1[9])
-                    atom1[10] = atom1[10]
-                    # FIX string formatting for pdb files
-                    line = '{:6}{:>5}  {:<4}{:<3}{:>6}{:>12}{:>8}{:>8}{:6.2f}{:6.2f}          {:>2s}\n'.format(*atom1)
+                    atom1 = IO.pdb_parse_in(line)
+                    atom1[1] = atom1[1] + self.atomoffset
+                    atom1[6] = atom1[6] + self.residueoffset
+                    atom1[8] = float(atom1[8]) + 0.001
+                    atom1[9] = float(atom1[9]) + 0.001
+                    atom1[10] = float(atom1[10]) + 0.001
+                    line = IO.pdb_parse_out(atom1) + '\n'
               
                     outfile.write(line)
                     
@@ -731,11 +728,11 @@ class Run(object):
         os.chdir(writedir)
         cluster_options = getattr(s, self.cluster)
         qprep = cluster_options['QPREP']
-        args = shlex.split(qprep + ' < qprep.inp' )
-        out = check_output(args)
-        with open('qprep.out', 'w') as outfile:
-            for line in out:
-                outfile.write(line)
+        options = ' < qprep.inp > qprep.out'
+        # Somehow Q is very annoying with this < > input style so had to implement
+        # another function that just calls os.system instead of using the preferred
+        # subprocess module....
+        IO.run_command(qprep, options, string = True)
         os.chdir('../../')
         
 if __name__ == "__main__":
