@@ -49,6 +49,8 @@ class Run(object):
     
     def get_center_coordinates(self):
         center = self.center
+        center = center.strip('[')
+        center = center.strip(']')
         center = center.split(':')
         with open(self.prot) as infile:
             for line in infile:
@@ -264,8 +266,9 @@ class Run(object):
                 
     def write_tmpPDB(self):
         with open(self.prot[:-4] + '_tmp.pdb', 'w') as outfile:
-            for key in self.PDB:
-                outline = IO.pdb_parse_out(self.PDB[key]) + '\n'
+            atom_numbers = sorted(list(self.PDB.keys()))
+            for atom in atom_numbers:
+                outline = IO.pdb_parse_out(self.PDB[atom]) + '\n'
                 outfile.write(outline)
         
     def write_qprep(self):

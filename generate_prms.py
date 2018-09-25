@@ -7,6 +7,8 @@ import sys
 import os
 import argparse
 
+import IO
+
 class Run(object):
     """
     Create FEP files from a common substructure for a given set of
@@ -23,7 +25,8 @@ class Run(object):
         self.lig = lig
         self.FF = FF
         self.merge = merge
-
+        self.ff_list = []
+        
         if output in programs:
             self.output = output
         else:
@@ -179,31 +182,18 @@ class Run(object):
                 outfile.write(line)
 
     def read_log(self):
-
         opls_list = []    
-        amber_list = []
         # Read output from ffld_server ## FIX FOR AMBER
-        with open(self.lig+'.log', 'r') as infile:
+        with open(self.lig + '.log', 'r') as infile:
             for line in infile:
                 if len(line) > 2:
                     opls_list.append(line.split())
 
-        # Here come the tags again
-        if len(opls_list) > 0: 
-            ff_list = opls_list
-            tag = 'opls'
-
-        elif len(amber_list) > 0:
-            ff_list = opls_list
-            tag = 'amber'
-
-        return ff_list, tag
+        self.ff_list = opls_list
 
 
-    def convert_toQ(self, log_output):
-        ff_list = log_output[0]
-        #This tag should be inherited for the calc functions!
-        tag = log_output[1]
+    def convert_toQ(self):
+        ff_list = self.ff_list
 
         ## NOTE: working with OPLS for the moment, later include others
         charge_sum = 0
@@ -263,19 +253,20 @@ class Run(object):
 
         charge_group_list = run.get_charge_groups(charge_dic, bonded)
 
-        return[charge_list, 
-               charge_sum, 
-               vdw_list, 
-               bond_list, 
-               angle_list, 
-               torsion_list, 
-               improper_list,
-               charge_group_list]
+        self.Q_FF =[charge_list, 
+                    charge_sum, 
+                    vdw_list, 
+                    bond_list, 
+                    angle_list, 
+                    torsion_list, 
+                    improper_list,
+                    charge_group_list]
 
         # Now write out lib
 
-    def write_lib_Q(self, parm):
+    def write_lib_Q(self):
         # this is just for readability, not necessary
+        parm = self.Q_FF
         at_len = len(parm[0])
         charge = parm[1]
         charges = parm[0]
@@ -314,10 +305,18 @@ class Run(object):
                                                            line[0][3]))
 
             outfile.write("\n[charge_groups]\n")
-            for line in charges:
-                outfile.write(line[0] + '  ')
+            for i in charges:
+                if i[0][0] != 'H':
+                    outfile.write('{}'.format(i[0]))
+                    for j in bonds:
+                        if j[0][0]==i[0] and j[0][1][0] == 'H':
+                            outfile.write(' {} '.format(j[0][1]))
+                        if j[0][1][0] == i[0] and j[0][1][0] =='H':
+                            outfile.write(" H%i" % j[0])
+                    outfile.write("\n")
 
-    def write_prm_Q(self, parm):
+    def write_prm_Q(self):
+        parm = self.Q_FF
         vdw = parm[2]
         bond = parm[3]
         angle = parm[4]
@@ -402,20 +401,22 @@ class Run(object):
     def write_itp_GROMACS(self):
         return True
 
-    def rename_pdb(self, converted_ff, include = ('ATOM', 'HETATOM')):
+    def rename_pdb(self, include = ('ATOM', 'HETATM')):
         pdb_in = self.lig + '.pdb'
         pdb_out = self.lig + '_out.pdb'
         index = -1
-        atomnames = converted_ff[0]
+        atomnames = self.Q_FF[0]
         with open(pdb_in) as infile, open(pdb_out, 'w') as outfile:
             for line in infile:
-                if line.startswith(include):
+                line = IO.pdb_parse_in(line)
+                if line[0].strip() in include:
+                    line[4] = 'LIG'
                     index += 1
-                    # Check what happens for larger ligands, what does ffld_server do with them???
-                    outfile.write('{}{:<3}{}'.format(line[0:13], 
-                                                     atomnames[index][0], 
-                                                     line[16:])
-                                 )
+                    line[2] = atomnames[index][0]
+                    outline = IO.pdb_parse_out(line)
+                    outfile.write(outline + '\n')
+                    
+        os.rename(pdb_out, pdb_in)
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -454,8 +455,8 @@ if __name__ == "__main__":
              )
 
     run.get_parameters()
-    ff_output = run.read_log()
-    converted_ff = run.convert_toQ(ff_output)
-    run.write_lib_Q(converted_ff)
-    run.write_prm_Q(converted_ff)
-    run.rename_pdb(converted_ff)
+    run.read_log()
+    run.convert_toQ()
+    run.write_lib_Q()
+    run.write_prm_Q()
+    run.rename_pdb()

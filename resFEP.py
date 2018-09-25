@@ -77,7 +77,12 @@ class Run(object):
                     }
     
     def checkFEP(self):
-        AA_from = IO.AA(self.mutation[0])
+        if len(self.mutation[0]) == 1:
+            AA_from = IO.AA(self.mutation[0])
+            
+        else:
+            AA_from = self.mutation[0]
+            
         AA_to = IO.AA(self.mutation[2])
         mutation = '{}{}{}'.format(*self.mutation)
         FEPdir = s.FF_DIR + '/.FEP/' + AA_from + '_' + AA_to
@@ -487,7 +492,7 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--replicates',
                         dest = "replicates",
                         required = False,
-                        help = "List of temperatures, default taken from settings.py")   
+                        help = "Amount of replicates, default taken from settings.py")   
     
     parser.add_argument('-C', '--cluster',
                         dest = "cluster",

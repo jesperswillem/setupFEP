@@ -26,6 +26,7 @@ class Run(object):
         self.sphereradius = sphereradius
         self.cysbond = cysbond
         self.start = start
+        self.include = ['ATOM', 'HETATM']
         
         if self.system == 'protein':
             # Get last atom and residue from complexfile!
@@ -109,14 +110,18 @@ class Run(object):
                     
                     
                     #adjustments to be made for lib and prm files
+                        
                     cnt = 0
                     for i in [line[1], line[2]]:
                         cnt = cnt + 1
-                        match = re.match(r"([a-z]+)([0-9]+)", i, re.I)
-                        if match:
-                            items = match.groups()
-                            j = str(items[0]) + str(int(items[1]) + int(molsize_lig1))
-                            
+                        if self.FF == 'AMBER14sb' or self.FF == 'CHARMM36':
+                            j = 'X' + i
+                        else:
+                            match = re.match(r"([a-z]+)([0-9]+)", i, re.I)
+                            if match:
+                                items = match.groups()
+                                j = str(items[0]) + str(int(items[1]) + int(molsize_lig1))
+
                         if cnt == 1:
                             changes_1[i] = j
                         if cnt == 2:
@@ -149,7 +154,7 @@ class Run(object):
         shutil.copy(self.lig1 + '.lib', writedir + '/' + self.lig1 + '.lib')
                                 
             
-    def change_prm(self, replacements, writedir):      
+    def change_prm(self, replacements, writedir):
         pattern = re.compile(r'\b(' + '|'.join(replacements.keys()) + r')\b')
         file1 = glob.glob(self.lig1 + '*.prm')[0]
         file2 = glob.glob(self.lig2 + '*.prm')[0]
@@ -322,7 +327,7 @@ class Run(object):
         atnr = self.atomoffset
         with open(self.lig2 + '.pdb') as infile:
             for line in infile:
-                if line.split()[0] == 'ATOM':
+                if line.split()[0].strip() in self.include:
                     line2 = pattern.sub(lambda x: replacements[x.group()], line)
                     file_replaced.append(line2)
                     
@@ -335,7 +340,7 @@ class Run(object):
                         outfile.write(line)
                         
             for line in infile:
-                if line.split()[0] == 'ATOM':
+                if line.split()[0].strip() in self.include:
                     resnr = int(line[22:26])
                     # Temporary fix NaN error of overlapping heavy atom in Q, add offset
                     atnr += 1
@@ -718,8 +723,8 @@ class Run(object):
                 if line == '!addbond at1 at2 y\n' and self.cysbond != None:
                     cysbond = self.cysbond.split(',')
                     for cys in cysbond:
-                        at1 = cys.split(':')[0]
-                        at2 = cys.split(':')[1]
+                        at1 = cys.split('_')[0]
+                        at2 = cys.split('_')[1]
                         outfile.write('addbond ' + at1 + ' ' + at2 + ' y \n' )
                     continue
                 outfile.write(line)
@@ -756,7 +761,7 @@ if __name__ == "__main__":
     parser.add_argument('-FF', '--forcefield',
                         dest = "FF",
                         required = True,
-                        choices = ['OPLS2005', 'OPLS2015'],
+                        choices = ['OPLS2005', 'OPLS2015', 'AMBER14sb', 'CHARMM36', 'CHARMM22'],
                         help = "Forcefield to be used")
     
     parser.add_argument('-s', '--system',

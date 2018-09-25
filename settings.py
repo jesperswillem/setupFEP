@@ -6,16 +6,16 @@ ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 FF_DIR = os.path.join(ROOT_DIR, "FF")
 INPUT_DIR = os.path.join(ROOT_DIR, "INPUTS")
 # Dicionary of locations of Q executables
-Q_DIR = {'CSB':'/home/jespers/software/q_510/bin/',
+Q_DIR = {'CSB':'/home/apps/q-5.06/',
          'LOCAL':'/Users/willemjespers/Software/q_510/bin/'
         }
 BIN = os.path.join(ROOT_DIR, "bin")
-SCHROD_DIR = '/opt/schrodinger/suites2017-3/'
-
+#SCHROD_DIR = '/opt/schrodinger/suites2017-3/'
+SCHROD_DIR = '/home/apps/schrodinger2017/'
 
 # FEP related inputs
 REPLICATES='10'
-WINDOWS='20'
+WINDOWS='50'
 TEMPERATURE='298'
 
 # Lambda sampling options
@@ -27,7 +27,7 @@ SAMPLING='linear'
 # CLUSTER INPUTS. To add your own cluster, use the same input as below
 CSB = {'NODES'        : '1',
        'NTASKS'       : '16',
-       'TIME'         : '0-03:00:00',  # d-hh:mm:ss
+       'TIME'         : '0-06:00:00',  # d-hh:mm:ss
        'MODULES'      : 'module load openmpi-x86_64\n', # Add a \n for every added module
        'QDYN'         : 'qdyn=/home/apps/q-5.06/qdynp',
        'QPREP'        : '/home/apps/q-5.06/qprep'
@@ -38,7 +38,7 @@ HEBBE = {'NODES'      : '1',
          'TIME'       : '0-02:00:00',  # d-hh:mm:ss
          'MODULES'    : 'module load GCC/5.4.0-2.26\nmodule load OpenMPI/1.10.3\n', # Add a \n for every added module
          'QDYN'       : 'qdyn=/c3se/users/jwillem/Hebbe/software/qsource/bin/qdyn5p', #fix qdyn= !!!!!
-         'QPREP'      : '/home/apps/q-5.06/qprep', # NOTE: change to where you are setting up, not where you are running!
+         'QPREP'      : '/home/jespers/software/q_510/bin/qprep', # NOTE: change to where you are setting up, not where you are running!
          'ACCOUNT'    : 'SNIC2017-1-549'
         }
 
@@ -48,7 +48,7 @@ KEBNE = {'NODES'      : '1',
          'MODULES'    : 'module load gompi/2017b\n', # Add a \n for every added module
          'QDYN'       : 'qdyn=/home/w/wije/pfs/software/Q5/bin/qdyn5p', #fix qdyn= !!!!!
          'QPREP'      : '/home/apps/q-5.06/qprep', # NOTE: change to where you are setting up, not where you are running!
-         'ACCOUNT'    : 'SNIC2017-1-549'
+         'ACCOUNT'    : 'SNIC2017-12-11'
         }
 
 STALLO = {'NODES'      : '1',
