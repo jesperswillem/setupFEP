@@ -13,8 +13,7 @@ import IO
 
 class Run(object):
     """
-    Create FEP files from a common substructure for a given set of
-    ligands
+    Create dual topology FEP files based on two ligands
     """
     def __init__(self, 
                  lig1, 
@@ -74,7 +73,6 @@ class Run(object):
 
         return directory
     
-    # Moved to IO, change in the code!
     def replace(self, string, replacements):
         pattern = re.compile(r'\b(' + '|'.join(replacements.keys()) + r')\b')
         replaced_string = pattern.sub(lambda x: replacements[x.group()], string)
@@ -127,7 +125,6 @@ class Run(object):
                     
                     
                     #adjustments to be made for lib and prm files
-                        
                     cnt = 0
                     for i in [line[1], line[2]]:
                         cnt = cnt + 1
@@ -167,7 +164,6 @@ class Run(object):
                 
         with open(writedir + '/' + self.lig2 +'_renumber.lib', 'w') as outfile:
             block = 0
-            # temporary fix for charge group switching atoms
             for line in file_replaced:
                 outfile.write(line)
                 
@@ -246,7 +242,7 @@ class Run(object):
                     if line == "! Ligand improper parameters\n":
                         block = 5
 
-                # Create lists (do something with containers?) FIX dic keys
+                # Read the parameters in from file and store them
                 if block == 1: 
                     for line in prm_merged['vdw']:
                         outfile.write(line)
@@ -365,7 +361,7 @@ class Run(object):
             for line in infile:
                 if line.split()[0].strip() in self.include:
                     resnr = int(line[22:26])
-                    # Temporary fix NaN error of overlapping heavy atom in Q, add offset
+                    # The atoms are not allowed to overlap in Q
                     atnr += 1
                     atom1 = IO.pdb_parse_in(line)
                     atom1[1] = atom1[1] + self.atomoffset
@@ -386,7 +382,6 @@ class Run(object):
                 outfile.write(line)
     
     def write_water_pdb(self, writedir):
-        # This function could later include a water removal part
         header = self.sphereradius + '.0 SPHERE\n'
         with open('water.pdb') as infile, open(writedir + '/water.pdb', 'w') as outfile:
             outfile.write(header)
@@ -395,6 +390,7 @@ class Run(object):
         
         
     def get_lambdas(self, windows, sampling):
+        # Constructing the lambda partition scheme
         windows = int(windows)
         step = windows/2
         lambdas = []
@@ -660,10 +656,10 @@ class Run(object):
         cluster = self.cluster
         run_file_in = s.ROOT_DIR + '/INPUTS/run.sh' 
         run_file_out = writedir + '/run' + cluster + '.sh'
-        run1_in = s.ROOT_DIR + '/INPUTS/run_0500-1000.sh'
-        run1_out = writedir + '/run_0500-1000.sh'
-        run2_in = s.ROOT_DIR + '/INPUTS/run_0500-0000.sh'
-        run2_out = writedir + '/run_0500-0000.sh'
+        #run1_in = s.ROOT_DIR + '/INPUTS/run_0500-1000.sh'
+        #run1_out = writedir + '/run_0500-1000.sh'
+        #run2_in = s.ROOT_DIR + '/INPUTS/run_0500-0000.sh'
+        #run2_out = writedir + '/run_0500-0000.sh'
         replacements = getattr(s, cluster)
         replacements['FEPS']='FEP1.fep'
         run_threads = '{}'.format(int(replacements['NTASKS']))
@@ -751,7 +747,6 @@ class Run(object):
 
     def write_qprep(self, writedir):
         replacements = {}
-        # QUICK fix for protein file, should be COG of lig1/lig2 not lig1 alone
         center = f.COG(self.lig1 + '.pdb')
         center = '{:} {:} {:}'.format(center[0], center[1], center[2])
         qprep_in = s.ROOT_DIR + '/INPUTS/qprep.inp'
@@ -888,7 +883,6 @@ if __name__ == "__main__":
               sampling = args.sampling
              )
 
-    # All parameters written here need to be put in the run container as in protPREP
     writedir = run.makedir()
     inputdir = writedir + '/inputfiles'
     a = run.read_files()
@@ -909,7 +903,7 @@ if __name__ == "__main__":
     lambdas = run.get_lambdas(args.windows, args.sampling)
     overlapping_atoms = run.overlapping_atoms(writedir)
     
-    # Temporary file handling for different offsets, change later
+    # Handling the correct offset here
     if args.start == '0.5':
         file_list = run.write_MD_05(lambdas, inputdir, lig_size1, lig_size2)
         run.write_runfile(inputdir, file_list)    

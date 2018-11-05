@@ -11,7 +11,8 @@ import IO
 
 class Run(object):
     """
-    Setup residue FEPs using either a single or dual topology approach.
+    Setup residue FEPs using either a single or dual topology approach (latter under
+    construction).
     """
     def __init__(self, cofactor, mutation, include, forcefield, windows,
                  sampling, system, cluster, temperature, replicates, 
@@ -439,6 +440,36 @@ class Run(object):
                                 outfile.write(outline)
                             else:
                                 outfile.write('\n')
+
+    def write_qfep(self, inputdir, windows, lambdas):
+        qfep_in = s.ROOT_DIR + '/INPUTS/qfep.inp'
+        qfep_out = writedir + '/inputfiles/qfep.inp'
+        i = 0
+        total_l = len(lambdas)
+
+        # TO DO: multiple files will need to be written out for temperature range
+        kT = f.kT(float(self.temperature))
+        replacements = {}
+        replacements['kT']=kT
+        replacements['WINDOWS']=windows
+        replacements['TOTAL_L']=str(total_l)
+        with open(qfep_in) as infile, open(qfep_out, 'w') as outfile:
+            for line in infile:
+                line = run.replace(line, replacements)
+                outfile.write(line)
+
+            if line == '!ENERGY_FILES\n':
+                for i in range(0, total_l):
+                    j = -(i + 1)
+                    lambda1 = lambdas[i]
+                    lambda2 = lambdas[j]
+                    filename = 'md_' +                          \
+                                lambda1.replace('.', '') +      \
+                                '_' +                           \
+                                lambda2.replace('.', '') +      \
+                                '.en\n'
+
+                    outfile.write(filename)
                             
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
