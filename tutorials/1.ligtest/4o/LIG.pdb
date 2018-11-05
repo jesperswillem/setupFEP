@@ -1,0 +1,57 @@
+REMARK LIGPARGEN GENERATED PDB FILE
+ATOM      1  H00 LIG     1       6.179   1.071   7.823
+ATOM      2  C01 LIG     1       5.467   1.012   7.009
+ATOM      3  C02 LIG     1       4.105   0.949   7.194
+ATOM      4  C03 LIG     1       5.818   0.990   5.628
+ATOM      5  H04 LIG     1       3.567   0.950   8.133
+ATOM      6  S05 LIG     1       3.261   0.866   5.713
+ATOM      7  H06 LIG     1       6.836   1.032   5.260
+ATOM      8  C07 LIG     1       4.717   0.912   4.787
+ATOM      9  C08 LIG     1       4.697   0.871   3.318
+ATOM     10  N09 LIG     1       5.902   0.915   2.723
+ATOM     11  N0A LIG     1       3.511   0.848   2.693
+ATOM     12  C0B LIG     1       5.899   0.934   1.390
+ATOM     13  C0C LIG     1       3.549   0.866   1.345
+ATOM     14  N0D LIG     1       7.135   1.037   0.754
+ATOM     15  C0E LIG     1       4.740   0.909   0.648
+ATOM     16  C0F LIG     1       2.223   0.839   0.696
+ATOM     17  H0G LIG     1       7.253   0.348   0.019
+ATOM     18  H0H LIG     1       7.861   0.977   1.461
+ATOM     19  H0I LIG     1       4.787   0.925  -0.432
+ATOM     20  S0J LIG     1       2.062   0.858  -1.021
+ATOM     21  C0K LIG     1       0.975   0.797   1.292
+ATOM     22  C0M LIG     1       0.360   0.812  -0.951
+ATOM     23  H0N LIG     1       0.841   0.780   2.368
+ATOM     24  C0O LIG     1      -0.098   0.782   0.353
+ATOM     25  H0P LIG     1      -0.224   0.811  -1.861
+ATOM     26  H0Q LIG     1      -1.148   0.749   0.616
+TER 
+CONECT    1    2 
+CONECT    2    3 
+CONECT    2    4 
+CONECT    3    5 
+CONECT    3    6 
+CONECT    4    7 
+CONECT    4    8 
+CONECT    8    9 
+CONECT    9   10 
+CONECT    9   11 
+CONECT   10   12 
+CONECT   11   13 
+CONECT   12   14 
+CONECT   12   15 
+CONECT   13   16 
+CONECT   14   17 
+CONECT   14   18 
+CONECT   15   19 
+CONECT   16   20 
+CONECT   16   21 
+CONECT   20   22 
+CONECT   21   23 
+CONECT   21   24 
+CONECT   22   25 
+CONECT   24   26 
+CONECT    6    8 
+CONECT   13   15 
+CONECT   22   24 
+END
