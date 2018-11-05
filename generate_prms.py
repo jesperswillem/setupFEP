@@ -194,6 +194,7 @@ class Run(object):
 
     def convert_toQ(self):
         ff_list = self.ff_list
+        halogen_cnt = 0
 
         ## NOTE: working with OPLS for the moment, later include others
         charge_sum = 0
@@ -225,8 +226,8 @@ class Run(object):
                     block = 5
 
             # Create lists (do something with containers?)
-            if len(line[0]) <= 4 and line[0] != 'atom':    
-                if block == 1: 
+            if len(line[0]) <= 4 and line[0] != 'atom':
+                if block == 1:
                     charge = [line[0], float(line[4])]
                     charge_dic[line[0]] = line[4]
                     charge_sum = charge_sum + float(line[4])
@@ -250,7 +251,7 @@ class Run(object):
                 if block == 5:
                     improper = [line[0:4], run.improper_calc(line[4]) + ['180.000']]
                     improper_list.append(improper)
-
+        
         charge_group_list = run.get_charge_groups(charge_dic, bonded)
 
         self.Q_FF =[charge_list, 

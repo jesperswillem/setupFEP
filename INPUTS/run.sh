@@ -38,6 +38,7 @@ cd $rundir
 
 cp $inputfiles/md*.inp .
 cp $inputfiles/*.top .
+cp $inputfiles/qfep.inp .
 cp $inputfiles/$fepfile .
 cp $inputfiles/run_0500-1000.sh .
 cp $inputfiles/run_0500-0000.sh .
@@ -58,3 +59,4 @@ if [ $index -lt 1 ]; then
 fi
 #RUN_FILES
 done
+timeout 30s QFEP < qfep.inp > qfep.out

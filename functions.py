@@ -81,3 +81,9 @@ def overlapping_pairs(pdbfile, reslist, include=('ATOM', 'HETATM')):
         atomlist.append(overlapping_atoms[i])
                         
     return atomlist
+
+def kT(T):
+    k = 0.0019872041 # kcal/(mol.K)
+    kT = k * T
+    kT = '{:.3f}'.format(kT)
+    return kT

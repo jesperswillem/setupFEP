@@ -15,12 +15,12 @@ SCHROD_DIR = '/home/apps/schrodinger2017/'
 
 # FEP related inputs
 REPLICATES='10'
-WINDOWS='50'
+WINDOWS='100'
 TEMPERATURE='298'
 
 # Lambda sampling options
-SAMPLING='linear'
-#SAMPLING='sigmoidal'
+#SAMPLING='linear'
+SAMPLING='sigmoidal'
 #SAMPLING='exponential'
 #SAMPLING='reverse_exponential'
 
@@ -28,9 +28,10 @@ SAMPLING='linear'
 CSB = {'NODES'        : '1',
        'NTASKS'       : '16',
        'TIME'         : '0-06:00:00',  # d-hh:mm:ss
-       'MODULES'      : 'module load openmpi-x86_64\n', # Add a \n for every added module
+       'MODULES'      : 'module load openmpi-x86_64\n module load gcc/6.2.0', 
        'QDYN'         : 'qdyn=/home/apps/q-5.06/qdynp',
-       'QPREP'        : '/home/apps/q-5.06/qprep'
+       'QPREP'        : '/home/apps/q-5.06/qprep',
+       'QFEP'         : '/home/jespers/software/q_510/bin/qfep'
       }
 
 HEBBE = {'NODES'      : '1',
@@ -48,6 +49,7 @@ KEBNE = {'NODES'      : '1',
          'MODULES'    : 'module load gompi/2017b\n', # Add a \n for every added module
          'QDYN'       : 'qdyn=/home/w/wije/pfs/software/Q5/bin/qdyn5p', #fix qdyn= !!!!!
          'QPREP'      : '/home/apps/q-5.06/qprep', # NOTE: change to where you are setting up, not where you are running!
+         'QFEP'         : '/home/w/wije/pfs/software/q_BAR/bin/qfep5',
          'ACCOUNT'    : 'SNIC2017-12-11'
         }
 

@@ -327,7 +327,6 @@ class Run(object):
              open('water.pdb', 'w') as watout, \
              open('protein.pdb', 'w') as protout:
                     
-            watout.write('{:<7.1f}SPHERE\n'.format(self.radius))
             for line in infile:
                 if line.startswith(self.include):
                     line = IO.pdb_parse_in(line)

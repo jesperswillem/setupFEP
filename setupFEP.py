@@ -16,7 +16,21 @@ class Run(object):
     Create FEP files from a common substructure for a given set of
     ligands
     """
-    def __init__(self, lig1, lig2, FF, system, cluster, sphereradius, cysbond, start, *args, **kwargs):
+    def __init__(self, 
+                 lig1, 
+                 lig2, 
+                 FF, 
+                 system, 
+                 cluster, 
+                 sphereradius, 
+                 cysbond, 
+                 start, 
+                 temperature, 
+                 replicates,
+                 sampling,
+                 *args, 
+                 **kwargs):
+        
         self.lig1 = lig1
         self.lig2 = lig2
         self.FF = FF
@@ -27,6 +41,9 @@ class Run(object):
         self.cysbond = cysbond
         self.start = start
         self.include = ['ATOM', 'HETATM']
+        self.temperature = temperature
+        self.replicates = replicates
+        self.sampling = sampling
         
         if self.system == 'protein':
             # Get last atom and residue from complexfile!
@@ -121,7 +138,10 @@ class Run(object):
                             if match:
                                 items = match.groups()
                                 j = str(items[0]) + str(int(items[1]) + int(molsize_lig1))
-
+                        
+                        if self.FF == 'CHARMM_TEST':
+                            j = 'X_' + i
+                        
                         if cnt == 1:
                             changes_1[i] = j
                         if cnt == 2:
@@ -328,8 +348,11 @@ class Run(object):
         with open(self.lig2 + '.pdb') as infile:
             for line in infile:
                 if line.split()[0].strip() in self.include:
-                    line2 = pattern.sub(lambda x: replacements[x.group()], line)
-                    file_replaced.append(line2)
+                    atom1 = IO.pdb_parse_in(line)
+                    atom1[4] = 'LID'
+                    #line2 = pattern.sub(lambda x: replacements[x.group()], line)
+                    line = IO.pdb_parse_out(atom1) + '\n'
+                    file_replaced.append(line)
                     
         with open(self.lig1 + '.pdb') as infile,                                            \
              open(writedir + '/' + self.lig1 + '_' + self.lig2 + '.pdb', 'w') as outfile:
@@ -455,7 +478,7 @@ class Run(object):
         elif self.system == 'protein':
             replacements['WATER_RESTRAINT'] = ''
         
-        for eq_file_in in glob.glob(s.ROOT_DIR + '/INPUTS/eq*.inp'):
+        for eq_file_in in sorted(glob.glob(s.ROOT_DIR + '/INPUTS/eq*.inp')):
             eq_file = eq_file_in.split('/')[-1:][0]
             eq_file_out = writedir + '/' + eq_file
 
@@ -552,7 +575,7 @@ class Run(object):
         elif self.system == 'protein':
             replacements['WATER_RESTRAINT'] = ''
         
-        for eq_file_in in glob.glob(s.ROOT_DIR + '/INPUTS/eq*.inp'):
+        for eq_file_in in sorted(glob.glob(s.ROOT_DIR + '/INPUTS/eq*.inp')):
             eq_file = eq_file_in.split('/')[-1:][0]
             eq_file_out = writedir + '/' + eq_file
 
@@ -615,8 +638,8 @@ class Run(object):
     
     def write_submitfile(self, writedir):
         replacements = {}
-        replacements['TEMP_VAR']    = s.TEMPERATURE
-        replacements['RUN_VAR']     = s.REPLICATES
+        replacements['TEMP_VAR']    = self.temperature
+        replacements['RUN_VAR']     = self.replicates
         replacements['RUNFILE']     = 'run' + self.cluster + '.sh'
         submit_in = s.ROOT_DIR + '/INPUTS/FEP_submit.sh'
         submit_out = writedir + ('/FEP_submit.sh')
@@ -695,7 +718,37 @@ class Run(object):
                                                                                      line,
                                                                                      line[:-4],)
                         outfile.write(runline)
-                            
+    
+    def write_qfep(self, inputdir, windows, lambdas):
+        qfep_in = s.ROOT_DIR + '/INPUTS/qfep.inp' 
+        qfep_out = writedir + '/inputfiles/qfep.inp'
+        i = 0
+        total_l = len(lambdas)
+        
+        # TO DO: multiple files will need to be written out for temperature range
+        kT = f.kT(float(self.temperature))
+        replacements = {}
+        replacements['kT']=kT
+        replacements['WINDOWS']=windows
+        replacements['TOTAL_L']=str(total_l)
+        with open(qfep_in) as infile, open(qfep_out, 'w') as outfile:
+            for line in infile:
+                line = run.replace(line, replacements)
+                outfile.write(line)
+            
+            if line == '!ENERGY_FILES\n':
+                for i in range(0, total_l):
+                    j = -(i + 1)
+                    lambda1 = lambdas[i]
+                    lambda2 = lambdas[j]
+                    filename = 'md_' +                          \
+                                lambda1.replace('.', '') +      \
+                                '_' +                           \
+                                lambda2.replace('.', '') +      \
+                                '.en\n'
+                                
+                    outfile.write(filename)
+
     def write_qprep(self, writedir):
         replacements = {}
         # QUICK fix for protein file, should be COG of lig1/lig2 not lig1 alone
@@ -761,7 +814,7 @@ if __name__ == "__main__":
     parser.add_argument('-FF', '--forcefield',
                         dest = "FF",
                         required = True,
-                        choices = ['OPLS2005', 'OPLS2015', 'AMBER14sb', 'CHARMM36', 'CHARMM22'],
+                        choices = ['OPLS2005', 'OPLS2015', 'AMBER14sb', 'CHARMM36', 'CHARMM22', 'CHARMM_TEST'],
                         help = "Forcefield to be used")
     
     parser.add_argument('-s', '--system',
@@ -796,6 +849,31 @@ if __name__ == "__main__":
                         help = "Starting FEP in the middle or endpoint"
                        )
     
+    parser.add_argument('-T', '--temperature',
+                        dest = "temperature",
+                        default = '298',
+                        help = "Temperature(s), mutliple tempereratures given as 'T1,T2,...,TN'"
+                       )
+    
+    parser.add_argument('-R', '--replicates',
+                        dest = "replicates",
+                        default = '10',
+                        help = "How many repeats should be run"
+                       )
+    
+    parser.add_argument('-S', '--sampling',
+                        dest = "sampling",
+                        default = 'linear',
+                        choices = ['linear', 'sigmoidal', 'exponential', 'reverse_exponential'],
+                        help = "Lambda spacing type to be used"
+                       )
+    
+    parser.add_argument('-w', '--windows',
+                        dest = "windows",
+                        default = '50',
+                        help = "Total number of windows that will be run"
+                       )
+    
     args = parser.parse_args()
     run = Run(lig1 = args.lig1,
               lig2 = args.lig2,
@@ -804,9 +882,13 @@ if __name__ == "__main__":
               cluster = args.cluster,
               sphereradius = args.sphereradius,
               cysbond = args.cysbond,
-              start = args.start
+              start = args.start,
+              temperature = args.temperature,
+              replicates = args.replicates,
+              sampling = args.sampling
              )
 
+    # All parameters written here need to be put in the run container as in protPREP
     writedir = run.makedir()
     inputdir = writedir + '/inputfiles'
     a = run.read_files()
@@ -822,8 +904,9 @@ if __name__ == "__main__":
     FEP_vdw = run.change_prm(changes_for_prmfiles, inputdir)
     run.write_FEP_file(change_charges, change_vdw, FEP_vdw, inputdir, lig_size1, lig_size2)
     run.merge_pdbs(inputdir)
-    run.write_water_pdb(inputdir)
-    lambdas = run.get_lambdas(s.WINDOWS, s.SAMPLING)
+    if args.system == 'protein':
+        run.write_water_pdb(inputdir)
+    lambdas = run.get_lambdas(args.windows, args.sampling)
     overlapping_atoms = run.overlapping_atoms(writedir)
     
     # Temporary file handling for different offsets, change later
@@ -836,6 +919,7 @@ if __name__ == "__main__":
         run.write_runfile(inputdir, file_list)    
     
     run.write_submitfile(writedir)
+    run.write_qfep(inputdir, args.windows, lambdas)
     run.write_qprep(inputdir)
     run.qprep(inputdir)
     
