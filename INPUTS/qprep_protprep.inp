@@ -2,7 +2,7 @@ rl FF_LIB
 rprm FF_PRM
 ! TO DO Change if protein system is used
 rp PROTPDB 
-set solute_density 0.05794 
+! set solute_density 0.05794 
 ! NOTE, this is now large for water system, change for protein system
 set solvent_pack 3.0
 boundary 1 CENTER SPHERE

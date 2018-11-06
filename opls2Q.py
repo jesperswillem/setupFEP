@@ -196,7 +196,6 @@ class Run(object):
         ff_list = self.ff_list
         halogen_cnt = 0
 
-        ## NOTE: working with OPLS for the moment, later include others
         charge_sum = 0
         charge_list = []
         charge_dic = {}
@@ -210,8 +209,7 @@ class Run(object):
 
         block = 0
 
-        # READ BLOCKS, check how output AMBER is, maybe this output is somewhat general
-        ## Ideally define this with blocks and run the same blocked structure
+        # READ BLOCKS
         for line in ff_list:
             if len(line) > 1:
                 if line[0] == "OPLSAA":
@@ -225,9 +223,10 @@ class Run(object):
                 if line[0] == "improper":
                     block = 5
 
-            # Create lists (do something with containers?)
+            # Create lists 
             if len(line[0]) <= 4 and line[0] != 'atom':
                 if block == 1:
+                    print line
                     charge = [line[0], float(line[4])]
                     charge_dic[line[0]] = line[4]
                     charge_sum = charge_sum + float(line[4])
@@ -352,7 +351,7 @@ class Run(object):
                     if line == "! Ligand improper parameters\n":
                         block = 5
 
-                # Create lists (do something with containers?)
+                # Create lists
                 if block == 1: 
                     for line in vdw:
                         outfile.write("""X{:6}{: 8.2f}{: 10.2f}{: 10.2f}{: 10.2f}{: 10.2f}{:>10s}\n""".format(line[0], 
@@ -416,6 +415,8 @@ class Run(object):
                     line[2] = atomnames[index][0]
                     outline = IO.pdb_parse_out(line)
                     outfile.write(outline + '\n')
+                    
+                print len(line)
                     
         os.rename(pdb_out, pdb_in)
     

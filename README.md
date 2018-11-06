@@ -22,11 +22,37 @@ Jespers et al. (resFEP/ligFEP). This tutorial includes the generation
 of ligand parameters using OPLS, how to prepare a protein system and
 how to run ligand and protein FEP calculations. These examples are 
 based on ligand binding of CDk2 inhibitors, and protein stability
-calculations on T4-lysozyme.
+calculations on T4-lysozyme. Each topic is stored within a seperate
+folder, and includes a README file including a step by step description
+of the protocol.
+
+# Installing setupFEP
+
+- Install a working version of Q, e.g.:
+
+https://github.com/esguerra/Q6
+
+- Clone this repository:
+
+git clone https://github.com/jesperswillem/setupFEP.git
+
+In settings.py:
+
+- Change SCHROD_DIR to the Schrodinger location, if you want to be
+able to generate OPLS ligand parameters using ffld_server.
+
+- Change Q_DIR to the location of the q executables. This can be
+particularly useful if you use setupFEP from a local machine on
+a mounted directory. (In which case, the executables of the preperation
+part and running part of Q are at several places).
+
+- You can add slurm specific parameters in the CLUSTER INPUTS section,
+according to the given example. 
 
 ## Requirements  
 - ffld_server
 - cgenff
+- Protein Preperation Wizard
 - Python2.7.XX
 - Q  
 

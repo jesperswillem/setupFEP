@@ -13,16 +13,6 @@ BIN = os.path.join(ROOT_DIR, "bin")
 #SCHROD_DIR = '/opt/schrodinger/suites2017-3/'
 SCHROD_DIR = '/home/apps/schrodinger2017/'
 
-# FEP related inputs
-REPLICATES='10'
-WINDOWS='100'
-TEMPERATURE='298'
-
-# Lambda sampling options
-#SAMPLING='linear'
-SAMPLING='sigmoidal'
-#SAMPLING='exponential'
-#SAMPLING='reverse_exponential'
 
 # CLUSTER INPUTS. To add your own cluster, use the same input as below
 CSB = {'NODES'        : '1',

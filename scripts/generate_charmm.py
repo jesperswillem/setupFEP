@@ -5,7 +5,9 @@ import os
 import shutil
 
 molecules = glob.glob('*.mol2')
+# FIX THIS
 os.system('module load openbabel/2.4.1')
+cgenff = '/home/jespers/software/cgenff/cgenff'
 
 def readprm(prmfile):
     block = 0

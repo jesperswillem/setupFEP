@@ -71,7 +71,6 @@ def pdb_parse_out(line):
     """
     line = '{:6s}{:5d}  {:3s}{:1s}{:4s}{:1s}{:4d}{:1s}   '\
            '{:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}'.format(*line)
-
     return line
 
 def replace(string, replacements):

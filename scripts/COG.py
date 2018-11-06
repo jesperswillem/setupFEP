@@ -1,3 +1,5 @@
+import argparse
+
 class Run(object):
     """
     Create FEP files from a common substructure for a given set of
@@ -6,7 +8,7 @@ class Run(object):
     def __init__(self, ipdb, *args, **kwargs):
         self.ipdb = ipdb
         
-    def COG(include='ATOM,HETATM'):
+    def COG(self, include='ATOM,HETATM'):
         """
         Calculates center of geometry of a protein and/or ligand structure.
         Returns:
@@ -31,7 +33,8 @@ class Run(object):
             # calculate center of geometry
             center = [sum([coordinates[i][j]/(len(coordinates))
                   for i in range(len(coordinates))]) for j in range(3)]
-            center = [round(center[i], 3) for i in range(3)]
+            center = [str(round(center[i], 3)) for i in range(3)]
+            center = ':'.join(center)
         return center
 
 if __name__ == "__main__":

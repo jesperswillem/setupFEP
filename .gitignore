@@ -9,3 +9,5 @@
 *.out
 *.re
 *.en
+tutorials/.TEST
+*1.TESTRUN*
