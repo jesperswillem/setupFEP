@@ -46,6 +46,18 @@ In order to succesfully run generate_charmm.py:
 - Have a running version of openbabel
 - make sure that you have .mol2 files with partial charges added
 
+-- Note --
+Due to an implementation error in Q, 4 letter atom names are not
+properly written out. In the case of particularly halogen atoms
+you would have to double check and adjust the .pdb file, e.g.
+in the case of 17.pdb in this tutorial, change:
+
+HETATM   25  Br25 LIG   900       3.933  25.020   9.894
+
+to:
+
+HETATM   25  Br25LIG   900       3.933  25.020   9.894
+
 # 2.protprep
 The second step is needed to prepare a protein for simulations
 under spherical boundary conditions (SBC). Note that this script
@@ -71,6 +83,9 @@ You can run $setupFEP/protprep.py -h for a full list of options.
 The outputs are a .log file, containing some information on the
 system and the adaptions made to run it in Q, a protein.pdb and
 a water.pdb file. The latter two are needed in the next stage.
+
+-- NOTE --
+The use of molprobity output is currently under construction!
 
 # 3.setupFEP
 In the next stage we will prepare the input files for the actual
