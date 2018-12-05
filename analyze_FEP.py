@@ -8,7 +8,6 @@ import IO
 
 class Run(object):
     """
-    Prepare a protein for usage in spherical boundary conditions.
     """
     def __init__(self, FEP, *args, **kwargs):
         self.FEP = FEP
@@ -20,7 +19,7 @@ class Run(object):
                    'dGf'    : {},
                    'dGr'    : {},
                    'dGos'   : {},
-                   'dGbar' : {}
+                   'dGbar' :  {}
                   }
         results = {}
         out = []
@@ -31,29 +30,32 @@ class Run(object):
             file_parse = filename.split('/')
             FEP = file_parse[1]
             temperature = file_parse[2]
-            replicate = file_parse[3]            
-            energies = IO.read_qfep(filename)            
+            replicate = file_parse[3]
+            try:
+                energies = IO.read_qfep(filename)
+            except:
+                print "Could not retrieve energies for: " + filename
+                energies = [np.nan, np.nan, np.nan, np.nan, np.nan]
+
             for key in methods_list:
                 i += 1
                 try:
                     methods[key][FEP].append(energies[i])
-
                 except:
                     methods[key][FEP] = [energies[i]]
-        
         for method in methods:
             dG_array = []
             for key in methods[method]:
+                print method, key, methods[method][key]
                 dG_array.append(methods[method][key])
             dG_array = np.array(dG_array)
             dG_array = dG_array.astype(np.float)
-            
             dG = f.avg_sem(dG_array)
             results[method]='{:6.2f}{:6.2f}'.format(*dG)
             
         for method in methods_list:
             out.append(results[method])
-        
+
         print self.FEP, '{} {} {} {} {}'.format(*out)
                 
 if __name__ == "__main__":

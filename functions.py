@@ -1,4 +1,5 @@
 import IO
+import numpy as np
 
 def sigmoid(t, k):
     return ( k * t / (k -t + 1.0))
@@ -87,3 +88,11 @@ def kT(T):
     kT = k * T
     kT = '{:.3f}'.format(kT)
     return kT
+
+def avg_sem(array):
+    FEP_sum = array.sum(axis = 0)
+    dG = np.nanmean(FEP_sum)
+    cnt = len(FEP_sum)
+    sem = np.nanstd(FEP_sum, ddof =1)/np.sqrt(cnt)
+
+    return [dG, sem]

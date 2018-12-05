@@ -3,6 +3,7 @@ import shlex
 from subprocess import check_output
 import os
 import stat
+import numpy as np
 
 import functions as f
 import settings as s
@@ -22,7 +23,7 @@ def pdb_parse_in(line, include=('ATOM','HETATM')):
     v3.3
     """
     at_entry = []
-
+    line = line.strip('\n')
     if line.startswith(include):
         at_entry.append(line[0:6])              #  0 ATOM/HETATM
         at_entry.append(int(line[6:11]))        #  1 ATOM serial number
@@ -248,4 +249,69 @@ def regex_str_int(line):
     a = re.split("(\d+)", line)
     return a
     
+def read_qfep(qfep):
+    """
+    Reads a given qfep.out file.
 
+    returns [Zwanzig, dGfr, dGr, TI, OS, BAR]
+    """
+    with open(qfep) as infile:
+        block = 0
+        for line in infile:
+            line = line.split()
+            if len(line) > 3:
+                if line[0] == 'ERROR:' or line[1] == 'ERROR:':
+                    ERROR = True
+
+                if line[3] == 'Free':
+                    block = 1
+
+                if line[3] == 'Termodynamic':
+                    #continue
+                    block = 2
+
+                if line[3] == 'Overlap':
+                    block = 3
+
+                if line[3] == 'BAR':
+                    block = 4
+
+                if line[3] == 'Reaction':
+                    block = 0
+
+            if len(line) > 1:
+                if block == 1:
+                    if line[0] == '1.000000':
+                        Zwanzig_r = line[4]
+
+                    elif line[0] == '0.000000':
+                        Zwanzig_f = line[2]
+
+                        if line[5] == '-Infinity':
+                            Zwanzig = np.nan
+
+                        else:
+                            Zwanzig = float(line[5])
+
+                if block == 2 and line[0] == '0.000000':
+                    try:
+                        TI = line[2]
+                        if line[2] == '-Infinity':
+                            TI = np.nan
+                    except:
+                        TI = np.nan
+
+                if block == 3 and line[0] == '0.000000':
+                    if line[2] == '-Infinity':
+                        OS = np.nan
+
+                    else:
+                        OS = float(line[2])
+
+                if block == 4 and line[0] == '0.000000':
+                    if line[2] == '-Infinity':
+                        BAR = np.nan
+                    else:
+                        BAR = float(line[2])
+    
+    return [Zwanzig, Zwanzig_f, Zwanzig_r, OS, BAR]
